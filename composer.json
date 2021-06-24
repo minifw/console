@@ -1,0 +1,27 @@
+{
+    "name": "minifw/console",
+    "type": "library",
+    "description": "php console control",
+    "keywords": ["php", "console"],
+    "homepage": "https://github.com/minifw/console",
+    "license": "LGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Yang Ming",
+            "email": "yangming0116@163.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "minifw/common": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Minifw\\Console\\": "src/"
+        }
+    }
+}

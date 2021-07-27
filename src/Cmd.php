@@ -318,43 +318,7 @@ class Cmd {
 
     //////////////////////////////////////////////////////////
 
-    public static function show_duration($duration) {
-        $hour = intval($duration / 3600);
-        if ($hour < 10) {
-            $hour = '0' . $hour;
-        }
-        $duration = $duration % 3600;
-        $min = intval($duration / 60);
-        if ($min < 10) {
-            $min = '0' . $min;
-        }
-        $sec = $duration % 60;
-        if ($sec < 10) {
-            $sec = '0' . $sec;
-        }
-        return $hour . ':' . $min . ':' . $sec;
-    }
-
-    public static function show_size($size) {
-        $unit = ['', ' K', ' M', ' G', ' T', ' P', ' E', ' Z', ' Y'];
-        $cur_unit = 0;
-
-        while ($size >= 1024 && $cur_unit < count($unit) - 1) {
-            $cur_unit++;
-            $size = bcdiv($size, 1024, 2);
-        }
-
-        if ($size >= 100) {
-            $size = bcdiv($size, 1, 0);
-        }
-        elseif ($size >= 10) {
-            $size = bcdiv($size, 1, 1);
-        }
-
-        return $size . $unit[$cur_unit];
-    }
-
-    public static function echo_table($cols, $body, $footer = []) {
+    public static function print_table($cols, $body, $footer = []) {
         $max_len = [];
         $header = [];
 
@@ -399,11 +363,11 @@ class Cmd {
         }
     }
 
-    public static function echo_json($data) {
+    public static function print_json($data) {
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . PHP_EOL;
     }
 
-    public static function echo_exception($ex) {
+    public static function print_exception($ex) {
         echo '[' . $ex->getCode() . '] ' . $ex->getFile() . '[' . $ex->getLine() . ']: ' . $ex->getMessage() . "\n";
     }
 

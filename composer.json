@@ -14,7 +14,7 @@
     ],
     "require": {
         "php": ">=7.0",
-        "minifw/common": "dev-master"
+        "minifw/common": "^v1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"

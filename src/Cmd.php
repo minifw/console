@@ -20,6 +20,7 @@
 namespace Minifw\Console;
 
 use Minifw\Common\Exception;
+use Minifw\Common\FileUtils;
 
 class Cmd {
 
@@ -210,20 +211,6 @@ class Cmd {
 
     ///////////////////////////////////////////
 
-    public static function path_join($path1, ...$paths) {
-        $resutl = rtrim($path1, '/\\');
-        foreach ($paths as $path) {
-            $path = rtrim($path, '/\\');
-            if ($path[0] == '/' || preg_match('/^\w:/i', $path)) {
-                $resutl = $path;
-            }
-            else {
-                $resutl .= '/' . $path;
-            }
-        }
-        return $resutl;
-    }
-
     public static function get_full_path($path) {
         if (self::$cwd === null) {
             self::$cwd = str_replace('\\', '/', getcwd());
@@ -231,7 +218,8 @@ class Cmd {
                 throw new Exception('获取路径信息失败');
             }
         }
-        return self::path_join(self::$cwd, $path);
+
+        return FileUtils::path_join(self::$cwd, $path);
     }
 
     /////////////////////////////////////////

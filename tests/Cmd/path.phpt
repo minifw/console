@@ -20,4 +20,4 @@ var_dump($path);
 --EXPECTF--
 string(%d) "%s"
 string(8) "/tmp/123"
-string(10) "D:\111\444"
+string(10) "D:/111/444"

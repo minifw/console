@@ -160,6 +160,34 @@ $test_list = [
         ],
         'argv' => ['--name', '123', '456', '789', '--id','123'],
     ],
+    [
+        'cfg' => [
+            'name' => [
+                'default' => null,
+                'require' => true,
+                'alias' => ['s'],
+                'params' => [['type'=>'string', 'default' => 'abc']],
+            ],
+        ],
+        'argv' => ['-s'],
+    ],
+    [
+        'cfg' => [
+            'name' => [
+                'default' => null,
+                'require' => true,
+                'alias' => ['s'],
+                'params' => [['type'=>'string', 'default' => 'abc']],
+            ],
+            'id' => [
+                'default' => null,
+                'require' => true,
+                'alias' => ['id'],
+                'params' => ['string'],
+            ],
+        ],
+        'argv' => ['-id','123','-s'],
+    ],
 ];
 
 foreach ($test_list as $test) {
@@ -231,4 +259,13 @@ array(2) {
   ["id"]=>
   int(123)
 }
-
+array(1) {
+  ["name"]=>
+  string(3) "abc"
+}
+array(2) {
+  ["name"]=>
+  string(3) "abc"
+  ["id"]=>
+  string(3) "123"
+}

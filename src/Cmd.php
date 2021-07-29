@@ -29,20 +29,22 @@ class Cmd {
     public static function get_one_param(&$array, $cfg = '') {
         $val = array_shift($array);
 
+        $default = null;
         if (is_array($cfg)) {
             $type = isset($cfg['type']) ? $cfg['type'] : '';
+            $default = isset($cfg['default']) ? $cfg['default'] : null;
         }
         else {
             $type = $cfg;
         }
 
         if ($val === null) {
-            return null;
+            return $default;
         }
 
         if (strncmp('-', $val, 1) == 0) {
             array_unshift($array, $val);
-            return null;
+            return $default;
         }
 
         if ($type == 'int') {

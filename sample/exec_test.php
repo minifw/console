@@ -19,19 +19,26 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Minifw\Console\Cmd;
 use Minifw\Common\Exception;
+use Minifw\Common\Utils;
+use Minifw\Console\Cmd;
 use Minifw\Console\Console;
 
-$ret = Cmd::exec_cmd('ls', null, false);
+$ret = Cmd::execCmd('ls', null, false);
 var_dump($ret);
 
-$ret = Cmd::exec_cmd('cat ' . dirname(__DIR__) . '/.gitignore', 1, false);
+$ret = Cmd::execCmd('cat ' . dirname(__DIR__) . '/.gitignore', 1, false);
 var_dump($ret);
 
-class Parse {
-
+class Parse
+{
+    /**
+     * @var mixed
+     */
     protected $msg_cache;
+    /**
+     * @var mixed
+     */
     protected $duration;
 
     /**
@@ -39,19 +46,32 @@ class Parse {
      * @var Console
      */
     protected $console;
+    /**
+     * @var mixed
+     */
     protected $crop;
 
-    public function __construct($console) {
+    /**
+     * @param $console
+     */
+    public function __construct($console)
+    {
         $this->console = $console;
     }
 
-    public function run() {
-        $this->do_parse_dir(dirname(__DIR__) . '/tmp/video');
+    public function run()
+    {
+        $this->doParseDir(dirname(__DIR__) . '/tmp/video');
     }
 
     /////////////////////////////////
 
-    protected function do_parse_dir($src, $show = '') {
+    /**
+     * @param $src
+     * @param $show
+     */
+    protected function doParseDir($src, $show = '')
+    {
         if (!is_dir($src)) {
             throw new Exception($src . ':必须是一个目录');
         }
@@ -67,15 +87,20 @@ class Parse {
             }
             $new_src = $src . '/' . $v;
             if (is_file($new_src)) {
-                $this->do_parse_file($new_src, $show . $v);
-            }
-            elseif (is_dir($new_src)) {
-                $this->do_parse_dir($new_src, $show . $v);
+                $this->doParseFile($new_src, $show . $v);
+            } elseif (is_dir($new_src)) {
+                $this->doParseDir($new_src, $show . $v);
             }
         }
     }
 
-    protected function do_parse_file($src, $show) {
+    /**
+     * @param $src
+     * @param $show
+     * @return null
+     */
+    protected function doParseFile($src, $show)
+    {
         $ext = pathinfo($src, PATHINFO_EXTENSION);
         $ext_list = [
             'mp4' => 1,
@@ -83,25 +108,27 @@ class Parse {
             'rmvb' => 1,
             'rm' => 1,
             'mkv' => 1,
-            'wmv' => 1,
+            'wmv' => 1
         ];
 
         if (!isset($ext_list[$ext]) || $ext_list[$ext] == 0) {
             $this->console->print($show . " \033[32mskip\033[0m")->reset();
+
             return;
         }
 
         $size = filesize($src);
 
-        $this->console->print($show . " \033[32m" . Cmd::show_size($size) . "\033[0m");
+        $this->console->print($show . " \033[32m" . Utils::showSize($size) . "\033[0m");
 
         $cmd = 'ffprobe -v quiet -print_format json -show_streams "' . $src . '"';
 
-        $ret = Cmd::exec_cmd($cmd, 1);
+        $ret = Cmd::execCmd($cmd, 1);
 
         $info = json_decode($ret, true);
         if (empty($info || empty($info['streams']))) {
             $this->console->print('不是视频文件：' . $show)->reset();
+
             return;
         }
 
@@ -118,6 +145,7 @@ class Parse {
 
         if ($duration <= 1) {
             $this->console->print('不是视频文件：' . $show)->reset();
+
             return;
         }
         $this->duration = $duration;
@@ -137,17 +165,16 @@ class Parse {
         }
 
         $crop = null;
-        $this->console->set_status('获取视频信息...');
+        $this->console->setStatus('获取视频信息...');
 
         foreach ($ss_list as $ss) {
             $cmd = 'ffmpeg -ss ' . $ss . ' -i "' . $src . '" -vframes 10 -vf cropdetect -f null - 2>&1 | grep \'cropdetect\'';
-            $result = Cmd::exec_cmd($cmd, 1, true);
+            $result = Cmd::execCmd($cmd, 1, true);
             foreach ($result as $v) {
                 if (preg_match('/x1:(\d+) x2:(\d+) y1:(\d+) y2:(\d+) w:(\d+) h:(\d+)/', $v, $matches)) {
                     if ($crop === null) {
                         $crop = [$matches[1], $matches[2], $matches[3], $matches[4]];
-                    }
-                    else {
+                    } else {
                         $crop[0] = $crop[0] <= $matches[1] ? $crop[0] : $matches[1];
                         $crop[1] = $crop[1] >= $matches[2] ? $crop[1] : $matches[2];
                         $crop[2] = $crop[2] <= $matches[3] ? $crop[2] : $matches[3];
@@ -166,12 +193,16 @@ class Parse {
 
         $cmd = 'ffmpeg -i "' . $src . '" -vf crop=' . $crop_str . ' -s 8x8 -pix_fmt gray -f image2pipe -vcodec rawvideo - > /dev/null';
         $this->msg_cache = '';
-        Cmd::exec_cmd_callback($cmd, [$this, 'show_progress'], 2);
+        Cmd::execCmdCallback($cmd, [$this, 'show_progress'], 2);
 
         $this->console->reset();
     }
 
-    public function show_progress($msg) {
+    /**
+     * @param $msg
+     */
+    public function show_progress($msg)
+    {
         $this->msg_cache .= $msg;
 
         $arr = explode("frame=", $this->msg_cache);
@@ -181,7 +212,7 @@ class Parse {
             $this->msg_cache = array_pop($arr);
         }
 
-        $total = Cmd::show_duration($this->duration);
+        $total = Utils::showDuration($this->duration);
 
         foreach ($arr as $line) {
             if (preg_match('/^\s*(\d+) fps=(\d+) .*? time=(\d+):(\d+):(\d+)\.\d+ .*/', $line, $matches)) {
@@ -189,11 +220,10 @@ class Parse {
                 $pecent = round($sec * 100 / $this->duration, 2);
 
                 $line = 'crop=' . $this->crop . ' frame=' . $matches[1] . ' fps=' . $matches[2] . ' time=' . $matches[3] . ':' . $matches[4] . ':' . $matches[5] . '/' . $total . ' ' . $pecent . '%';
-                $this->console->set_status($line);
+                $this->console->setStatus($line);
             }
         }
     }
-
 }
 
 $console = new Console();

@@ -22,19 +22,27 @@ namespace Minifw\Console;
 use Minifw\Common\Exception;
 use Minifw\Common\FileUtils;
 
-class Cmd {
-
+class Cmd
+{
+    /**
+     * @var mixed
+     */
     public static $cwd;
 
-    public static function get_one_param(&$array, $cfg = '') {
+    /**
+     * @param $array
+     * @param $cfg
+     * @return mixed
+     */
+    public static function getOneParam(&$array, $cfg = '')
+    {
         $val = array_shift($array);
 
         $default = null;
         if (is_array($cfg)) {
             $type = isset($cfg['type']) ? $cfg['type'] : '';
             $default = isset($cfg['default']) ? $cfg['default'] : null;
-        }
-        else {
+        } else {
             $type = $cfg;
         }
 
@@ -44,31 +52,33 @@ class Cmd {
 
         if (strncmp('-', $val, 1) == 0) {
             array_unshift($array, $val);
+
             return $default;
         }
 
         if ($type == 'int') {
             return intval($val);
-        }
-        elseif ($type == 'bool') {
+        } elseif ($type == 'bool') {
             return boolval($val);
-        }
-        elseif ($type == 'dir') {
-            return self::get_full_path(rtrim(strval($val), '\\/'));
-        }
-        elseif ($type == 'file') {
-            return self::get_full_path(strval($val));
-        }
-        else {
+        } elseif ($type == 'dir') {
+            return self::getFullPath(rtrim(strval($val), '\\/'));
+        } elseif ($type == 'file') {
+            return self::getFullPath(strval($val));
+        } else {
             return strval($val);
         }
     }
 
-    public static function get_param(&$array, $cfg = '') {
+    /**
+     * @param $array
+     * @param $cfg
+     * @return mixed
+     */
+    public static function getParam(&$array, $cfg = '')
+    {
         if (is_array($cfg)) {
             $type = isset($cfg['type']) ? $cfg['type'] : '';
-        }
-        else {
+        } else {
             $type = $cfg;
         }
 
@@ -77,23 +87,27 @@ class Cmd {
             $data_type = isset($cfg['data_type']) ? $cfg['data_type'] : '';
 
             while (true) {
-                $param = self::get_one_param($array, $data_type);
+                $param = self::getOneParam($array, $data_type);
                 if ($param !== null) {
                     $ret[] = $param;
-                }
-                else {
+                } else {
                     break;
                 }
             }
 
             return $ret;
-        }
-        else {
-            return self::get_one_param($array, $cfg);
+        } else {
+            return self::getOneParam($array, $cfg);
         }
     }
 
-    public static function get_action($argv, $actions) {
+    /**
+     * @param $argv
+     * @param $actions
+     * @return mixed
+     */
+    public static function getAction($argv, $actions)
+    {
         $action = array_shift($argv);
 
         $find = [];
@@ -121,7 +135,13 @@ class Cmd {
         return $action;
     }
 
-    public static function get_args($argv, $cfg) {
+    /**
+     * @param $argv
+     * @param $cfg
+     * @return mixed
+     */
+    public static function getArgs($argv, $cfg)
+    {
         $alias = [];
         $names = [];
         $result = [];
@@ -136,19 +156,16 @@ class Cmd {
                     foreach ($info['alias'] as $v) {
                         $alias[$v] = $name;
                     }
-                }
-                else {
+                } else {
                     $alias[$info['alias']] = $name;
                 }
             }
             if (isset($info['name'])) {
                 $names[$info['name']] = $name;
-            }
-            else {
+            } else {
                 $names[$name] = $name;
             }
         }
-
         while (!empty($argv)) {
             $arg_name = array_shift($argv);
 
@@ -158,15 +175,13 @@ class Cmd {
                     throw new Exception('参数[' . $name . ']不存在');
                 }
                 $cfg_name = $names[$name];
-            }
-            else if (strncmp('-', $arg_name, 1) == 0) {
+            } else if (strncmp('-', $arg_name, 1) == 0) {
                 $alia = substr($arg_name, 1);
                 if (!isset($alias[$alia])) {
                     throw new Exception('参数[' . $alia . ']不存在');
                 }
                 $cfg_name = $alias[$alia];
-            }
-            else {
+            } else {
                 throw new Exception('参数[' . $arg_name . ']不存在');
             }
 
@@ -180,18 +195,16 @@ class Cmd {
 
             if (!isset($cfg[$cfg_name]['params']) || empty($cfg[$cfg_name]['params'])) {
                 $result[$cfg_name]['value'] = !$result[$cfg_name]['default'];
-            }
-            elseif (count($cfg[$cfg_name]['params']) == 1) {
-                $tmp = self::get_param($argv, $cfg[$cfg_name]['params'][0]);
+            } elseif (count($cfg[$cfg_name]['params']) == 1) {
+                $tmp = self::getParam($argv, $cfg[$cfg_name]['params'][0]);
                 if ($tmp === null) {
                     throw new Exception('缺少必要参数[' . $cfg_name . ']');
                 }
                 $result[$cfg_name]['value'] = $tmp;
-            }
-            else {
+            } else {
                 $result[$cfg_name]['value'] = [];
                 foreach ($cfg[$cfg_name]['params'] as $type) {
-                    $tmp = self::get_param($argv, $type);
+                    $tmp = self::getParam($argv, $type);
                     if ($tmp === null) {
                         throw new Exception('缺少必要参数[' . $cfg_name . ']');
                     }
@@ -213,7 +226,11 @@ class Cmd {
 
     ///////////////////////////////////////////
 
-    public static function get_full_path($path) {
+    /**
+     * @param $path
+     */
+    public static function getFullPath($path)
+    {
         if (self::$cwd === null) {
             self::$cwd = str_replace('\\', '/', getcwd());
             if (self::$cwd === false) {
@@ -221,19 +238,26 @@ class Cmd {
             }
         }
 
-        return FileUtils::path_join(self::$cwd, $path);
+        return FileUtils::pathJoin(self::$cwd, $path);
     }
 
     /////////////////////////////////////////
 
-    public static function exec_cmd($cmd, $stream = null, $mline = false) {
+    /**
+     * @param $cmd
+     * @param $stream
+     * @param null $mline
+     * @return mixed
+     */
+    public static function execCmd($cmd, $stream = null, $mline = false)
+    {
         if ($stream !== 1 && $stream !== 2) {
             $stream = false;
         }
 
         $descriptorspec = [
             1 => ['file', '/dev/null', 'w'],
-            2 => ['file', '/dev/null', 'w'],
+            2 => ['file', '/dev/null', 'w']
         ];
         if ($stream !== null) {
             $descriptorspec[$stream] = ['pipe', 'w'];
@@ -255,22 +279,29 @@ class Cmd {
         if ($stream != null) {
             if ($mline) {
                 return explode("\n", $output);
-            }
-            else {
+            } else {
                 return $output;
             }
         }
+
         return $return_value;
     }
 
-    public static function exec_cmd_callback($cmd, $callback, $stream = 1) {
+    /**
+     * @param $cmd
+     * @param $callback
+     * @param $stream
+     * @return mixed
+     */
+    public static function execCmdCallback($cmd, $callback, $stream = 1)
+    {
         if ($stream !== 1 && $stream !== 2) {
             throw new Exception('Unknown stream');
         }
 
         $descriptorspec = [
             1 => ['file', '/dev/null', 'w'],
-            2 => ['file', '/dev/null', 'w'],
+            2 => ['file', '/dev/null', 'w']
         ];
         $descriptorspec[$stream] = ['pipe', 'w'];
 
@@ -278,14 +309,10 @@ class Cmd {
         $return_value = -1;
 
         if (is_resource($process)) {
-
             stream_set_blocking($pipes[$stream], false);
 
             while (true) {
                 $status = proc_get_status($process);
-                if (!$status['running']) {
-                    break;
-                }
 
                 while (true) {
                     $return_message = fread($pipes[$stream], 1024);
@@ -293,6 +320,10 @@ class Cmd {
                         break;
                     }
                     call_user_func($callback, $return_message);
+                }
+
+                if (!$status['running']) {
+                    break;
                 }
 
                 usleep(100 * 1000);
@@ -308,7 +339,13 @@ class Cmd {
 
     //////////////////////////////////////////////////////////
 
-    public static function print_table($cols, $body, $footer = []) {
+    /**
+     * @param $cols
+     * @param $body
+     * @param array $footer
+     */
+    public static function printTable($cols, $body, $footer = [])
+    {
         $max_len = [];
         $header = [];
 
@@ -338,32 +375,47 @@ class Cmd {
 
         $line_sep = str_repeat('-', $line_count) . "\n";
 
-        self::print_line($cols, $header, $max_len, 'header');
+        self::printLine($cols, $header, $max_len, 'header');
 
         echo $line_sep;
 
         foreach ($body as $line) {
-            self::print_line($cols, $line, $max_len, 'body');
+            self::printLine($cols, $line, $max_len, 'body');
         }
 
         echo $line_sep;
 
         if (!empty($footer)) {
-            self::print_line($cols, $footer, $max_len, 'footer');
+            self::printLine($cols, $footer, $max_len, 'footer');
         }
     }
 
-    public static function print_json($data) {
+    /**
+     * @param $data
+     */
+    public static function printJson($data)
+    {
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . PHP_EOL;
     }
 
-    public static function print_exception($ex) {
+    /**
+     * @param $ex
+     */
+    public static function printException($ex)
+    {
         echo '[' . $ex->getCode() . '] ' . $ex->getFile() . '[' . $ex->getLine() . ']: ' . $ex->getMessage() . "\n";
     }
 
     ///////////////////////////////////////////////////////////
 
-    protected static function print_line($cols, $line, $max_len, $type) {
+    /**
+     * @param $cols
+     * @param $line
+     * @param $max_len
+     * @param $type
+     */
+    protected static function printLine($cols, $line, $max_len, $type)
+    {
         $first = true;
         $str = '';
 
@@ -377,11 +429,9 @@ class Cmd {
 
             if ($align == 'left') {
                 $pad = STR_PAD_RIGHT;
-            }
-            elseif ($align == 'right') {
+            } elseif ($align == 'right') {
                 $pad = STR_PAD_LEFT;
-            }
-            else {
+            } else {
                 $pad = STR_PAD_BOTH;
             }
 
@@ -389,5 +439,4 @@ class Cmd {
         }
         echo $str . " |\n";
     }
-
 }

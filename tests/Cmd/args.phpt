@@ -25,7 +25,7 @@ $args_list = [
 
 foreach ($args_list as $args) {
     try {
-        $action = Cmd::get_action($args, $actions);
+        $action = Cmd::getAction($args, $actions);
         var_dump($action);
     }
     catch (Exception $ex) {
@@ -192,7 +192,7 @@ $test_list = [
 
 foreach ($test_list as $test) {
     try {
-        $result = Cmd::get_args($test['argv'], $test['cfg']);
+        $result = Cmd::getArgs($test['argv'], $test['cfg']);
         var_dump($result);
     }
     catch (Exception $ex) {

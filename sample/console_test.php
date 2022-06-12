@@ -25,7 +25,7 @@ use Minifw\Console\Console;
 $console = new Console();
 $console->print('123456');
 usleep(200 * 1000);
-$console->set_status('000000');
+$console->setStatus('000000');
 usleep(200 * 1000);
 $console->print("\033[32m123456\033[0m");
 usleep(200 * 1000);

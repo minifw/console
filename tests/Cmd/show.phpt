@@ -7,11 +7,11 @@ require __DIR__ . '/../../vendor/autoload.php';
 use Minifw\Console\Cmd;
 use Minifw\Common\Exception;
 
-Cmd::print_json([]);
-Cmd::print_json(['test' => 'value']);
+Cmd::printJson([]);
+Cmd::printJson(['test' => 'value']);
 
 $ex = new Exception('msg', 123);
-Cmd::print_exception($ex);
+Cmd::printException($ex);
 
 $cols = [
     [
@@ -30,7 +30,7 @@ $body = [
 ];
 $footer = ['count', 3];
 
-Cmd::print_table($cols, $body, $footer);
+Cmd::printTable($cols, $body, $footer);
 ?>
 --EXPECTF--
 []

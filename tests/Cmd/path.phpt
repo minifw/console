@@ -8,13 +8,13 @@ use Minifw\Console\Cmd;
 
 chdir(__DIR__);
 
-$path = Cmd::get_full_path('.');
+$path = Cmd::getFullPath('.');
 var_dump($path);
 
-$path = Cmd::get_full_path('/tmp/123');
+$path = Cmd::getFullPath('/tmp/123');
 var_dump($path);
 
-$path = Cmd::get_full_path('D:\\111\\444');
+$path = Cmd::getFullPath('D:\\111\\444');
 var_dump($path);
 ?>
 --EXPECTF--

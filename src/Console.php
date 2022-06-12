@@ -19,16 +19,39 @@
 
 namespace Minifw\Console;
 
-class Console {
-
-    protected $status_line = '';
-    protected $last_len = 0;
+class Console
+{
+    /**
+     * @var string
+     */
+    protected $statusLine = '';
+    /**
+     * @var int
+     */
+    protected $lastLen = 0;
+    /**
+     * @var mixed
+     */
     protected $stream;
+    /**
+     * @var mixed
+     */
     protected $width;
-    protected $is_tty;
+    /**
+     * @var mixed
+     */
+    protected $isTty;
+    /**
+     * @var string
+     */
     protected $encoding = 'utf-8';
 
-    public function str_width($str) {
+    /**
+     * @param $str
+     * @return mixed
+     */
+    public function strWidth($str)
+    {
         $raw_len = strlen($str);
         $char_len = mb_strlen($str, $this->encoding);
 
@@ -37,9 +60,15 @@ class Console {
         return $char_len + $wchars;
     }
 
-    public function str_truncate($str, $max_width) {
+    /**
+     * @param $str
+     * @param $max_width
+     * @return mixed
+     */
+    public function strTruncate($str, $max_width)
+    {
         while (true) {
-            $width = $this->str_width($str);
+            $width = $this->strWidth($str);
             if ($width <= $max_width) {
                 break;
             }
@@ -55,80 +84,100 @@ class Console {
         return $str;
     }
 
-    public function __construct($stream = null, $encoding = 'utf-8') {
+    /**
+     * @param $stream
+     * @param null $encoding
+     */
+    public function __construct($stream = null, $encoding = 'utf-8')
+    {
         if ($stream === null) {
             $this->stream = fopen('php://stdout', 'wb');
-        }
-        else {
+        } else {
             $this->stream = $stream;
         }
         $this->width = exec('tput cols');
-        $this->is_tty = (function_exists('posix_isatty') && @posix_isatty($this->stream));
+        $this->isTty = (function_exists('posix_isatty') && @posix_isatty($this->stream));
         $this->encoding = $encoding;
     }
 
-    public function reset() {
-        if (!$this->is_tty) {
+    /**
+     * @return mixed
+     */
+    public function reset()
+    {
+        if (!$this->isTty) {
             return $this;
         }
 
-        $this->clear_status();
+        $this->clearStatus();
 
-        $this->status_line = '';
-        $this->last_len = 0;
+        $this->statusLine = '';
+        $this->lastLen = 0;
 
         return $this;
     }
 
-    public function set_status($line) {
-        if (!$this->is_tty) {
+    /**
+     * @param $line
+     * @return mixed
+     */
+    public function setStatus($line)
+    {
+        if (!$this->isTty) {
             return $this;
         }
 
-        $line = $this->str_truncate($line, $this->width);
-        $this->status_line = $line;
+        $line = $this->strTruncate($line, $this->width);
+        $this->statusLine = $line;
 
-        $this->clear_status();
-        $this->show_status();
+        $this->clearStatus();
+        $this->showStatus();
 
-        $this->last_len = $this->str_width($this->status_line);
+        $this->lastLen = $this->strWidth($this->statusLine);
 
         return $this;
     }
 
-    public function clear_status() {
-        if (!$this->is_tty) {
+    /**
+     * @return mixed
+     */
+    public function clearStatus()
+    {
+        if (!$this->isTty) {
             return $this;
         }
 
-        if ($this->last_len > 0) {
-            $tmp = str_repeat(chr(0x08), $this->last_len) . str_repeat(" ", $this->last_len) . str_repeat(chr(0x08), $this->last_len);
+        if ($this->lastLen > 0) {
+            $tmp = str_repeat(chr(0x08), $this->lastLen) . str_repeat(" ", $this->lastLen) . str_repeat(chr(0x08), $this->lastLen);
             fwrite($this->stream, $tmp);
         }
 
         return $this;
     }
 
-    public function show_status() {
-        if (!$this->is_tty) {
+    /**
+     * @return mixed
+     */
+    public function showStatus()
+    {
+        if (!$this->isTty) {
             return $this;
         }
 
-        fwrite($this->stream, "\033[32m" . $this->status_line . "\033[0m");
-        $this->last_len = $this->str_width($this->status_line);
+        fwrite($this->stream, "\033[32m" . $this->statusLine . "\033[0m");
+        $this->lastLen = $this->strWidth($this->statusLine);
     }
 
-    public function print($str) {
-        $this->clear_status();
+    function print($str) {
+        $this->clearStatus();
 
-        if (!$this->is_tty) {
+        if (!$this->isTty) {
             $str = preg_replace("/\033\[\d+m/", '', $str);
         }
 
         fwrite($this->stream, $str . PHP_EOL);
-        $this->show_status();
+        $this->showStatus();
 
         return $this;
     }
-
 }

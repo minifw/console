@@ -71,44 +71,38 @@ class Console
 
     public function reset() : self
     {
-        if (!$this->isTty) {
-            return $this;
+        if ($this->isTty) {
+            $this->clearStatus();
+
+            $this->statusLine = '';
+            $this->lastLen = 0;
         }
-
-        $this->clearStatus();
-
-        $this->statusLine = '';
-        $this->lastLen = 0;
 
         return $this;
     }
 
     public function setStatus(string $line) : self
     {
-        if (!$this->isTty) {
-            return $this;
+        if ($this->isTty) {
+            $line = $this->strTruncate($line, $this->width);
+            $this->statusLine = $line;
+
+            $this->clearStatus();
+            $this->showStatus();
+
+            $this->lastLen = $this->strWidth($this->statusLine);
         }
-
-        $line = $this->strTruncate($line, $this->width);
-        $this->statusLine = $line;
-
-        $this->clearStatus();
-        $this->showStatus();
-
-        $this->lastLen = $this->strWidth($this->statusLine);
 
         return $this;
     }
 
     public function clearStatus() : self
     {
-        if (!$this->isTty) {
-            return $this;
-        }
-
-        if ($this->lastLen > 0) {
-            $tmp = str_repeat(chr(0x08), $this->lastLen) . str_repeat(' ', $this->lastLen) . str_repeat(chr(0x08), $this->lastLen);
-            fwrite($this->stream, $tmp);
+        if ($this->isTty) {
+            if ($this->lastLen > 0) {
+                $tmp = str_repeat(chr(0x08), $this->lastLen) . str_repeat(' ', $this->lastLen) . str_repeat(chr(0x08), $this->lastLen);
+                fwrite($this->stream, $tmp);
+            }
         }
 
         return $this;
@@ -116,12 +110,12 @@ class Console
 
     public function showStatus() : self
     {
-        if (!$this->isTty) {
-            return $this;
+        if ($this->isTty) {
+            fwrite($this->stream, "\033[32m" . $this->statusLine . "\033[0m");
+            $this->lastLen = $this->strWidth($this->statusLine);
         }
 
-        fwrite($this->stream, "\033[32m" . $this->statusLine . "\033[0m");
-        $this->lastLen = $this->strWidth($this->statusLine);
+        return $this;
     }
 
     public function print(string $str) : self

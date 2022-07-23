@@ -17,7 +17,6 @@
  * along with this library.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 const ARGS_CFG = [
     'name' => [
         'default' => null,
@@ -51,4 +50,3 @@ const ARGS_CFG = [
         'params' => ['int', 'int'],
     ],
 ];
-

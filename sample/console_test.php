@@ -17,7 +17,6 @@
  * along with this library.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 require __DIR__ . '/../vendor/autoload.php';
 
 use Minifw\Console\Console;

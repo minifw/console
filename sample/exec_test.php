@@ -32,45 +32,24 @@ var_dump($ret);
 
 class Parse
 {
-    /**
-     * @var mixed
-     */
-    protected $msg_cache;
-    /**
-     * @var mixed
-     */
-    protected $duration;
+    protected string $msg_cache;
+    protected int $duration;
+    protected Console $console;
+    protected string $crop;
 
-    /**
-     *
-     * @var Console
-     */
-    protected $console;
-    /**
-     * @var mixed
-     */
-    protected $crop;
-
-    /**
-     * @param $console
-     */
-    public function __construct($console)
+    public function __construct(Console $console)
     {
         $this->console = $console;
     }
 
-    public function run()
+    public function run() : void
     {
         $this->doParseDir(dirname(__DIR__) . '/tmp/video');
     }
 
     /////////////////////////////////
 
-    /**
-     * @param $src
-     * @param $show
-     */
-    protected function doParseDir($src, $show = '')
+    protected function doParseDir(string $src, string $show = '') : void
     {
         if (!is_dir($src)) {
             throw new Exception($src . ':必须是一个目录');
@@ -94,12 +73,7 @@ class Parse
         }
     }
 
-    /**
-     * @param $src
-     * @param $show
-     * @return null
-     */
-    protected function doParseFile($src, $show)
+    protected function doParseFile(string $src, string $show) : void
     {
         $ext = pathinfo($src, PATHINFO_EXTENSION);
         $ext_list = [
@@ -171,7 +145,7 @@ class Parse
             $cmd = 'ffmpeg -ss ' . $ss . ' -i "' . $src . '" -vframes 10 -vf cropdetect -f null - 2>&1 | grep \'cropdetect\'';
             $result = Cmd::execCmd($cmd, 1, true);
             foreach ($result as $v) {
-                if (preg_match('/x1:(\d+) x2:(\d+) y1:(\d+) y2:(\d+) w:(\d+) h:(\d+)/', $v, $matches)) {
+                if (preg_match('/x1:(\\d+) x2:(\\d+) y1:(\\d+) y2:(\\d+) w:(\\d+) h:(\\d+)/', $v, $matches)) {
                     if ($crop === null) {
                         $crop = [$matches[1], $matches[2], $matches[3], $matches[4]];
                     } else {
@@ -193,29 +167,26 @@ class Parse
 
         $cmd = 'ffmpeg -i "' . $src . '" -vf crop=' . $crop_str . ' -s 8x8 -pix_fmt gray -f image2pipe -vcodec rawvideo - > /dev/null';
         $this->msg_cache = '';
-        Cmd::execCmdCallback($cmd, [$this, 'show_progress'], 2);
+        Cmd::execCmdCallback($cmd, [$this, 'showProgress'], 2);
 
         $this->console->reset();
     }
 
-    /**
-     * @param $msg
-     */
-    public function show_progress($msg)
+    public function showProgress(string $msg) : void
     {
         $this->msg_cache .= $msg;
 
-        $arr = explode("frame=", $this->msg_cache);
+        $arr = explode('frame=', $this->msg_cache);
         $count = count($arr);
 
-        if (!preg_match('/^(\d+) fps=(\d+) .*? time=(\d+):(\d+):(\d+).\d+ .*$/', $arr[$count - 1])) {
+        if (!preg_match('/^(\\d+) fps=(\\d+) .*? time=(\\d+):(\\d+):(\\d+).\\d+ .*$/', $arr[$count - 1])) {
             $this->msg_cache = array_pop($arr);
         }
 
         $total = Utils::showDuration($this->duration);
 
         foreach ($arr as $line) {
-            if (preg_match('/^\s*(\d+) fps=(\d+) .*? time=(\d+):(\d+):(\d+)\.\d+ .*/', $line, $matches)) {
+            if (preg_match('/^\\s*(\\d+) fps=(\\d+) .*? time=(\\d+):(\\d+):(\\d+)\\.\\d+ .*/', $line, $matches)) {
                 $sec = $matches[3] * 3600 + $matches[4] * 60 + $matches[5];
                 $pecent = round($sec * 100 / $this->duration, 2);
 

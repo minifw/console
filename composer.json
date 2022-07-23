@@ -2,7 +2,10 @@
     "name": "minifw/console",
     "type": "library",
     "description": "php console control",
-    "keywords": ["php", "console"],
+    "keywords": [
+        "php",
+        "console"
+    ],
     "homepage": "https://github.com/minifw/console",
     "license": "LGPL-3.0-or-later",
     "authors": [
@@ -12,12 +15,33 @@
             "role": "Developer"
         }
     ],
+    "minimum-stability": "dev",
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true
+        }
+    },
+    "extra": {
+        "bamarni-bin": {
+            "bin-links": false,
+            "forward-command": true
+        },
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    },
+    "scripts": {
+        "test": "./vendor-bin/phpunit/vendor/bin/phpunit ."
+    },
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.4",
         "minifw/common": "^v1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5"
+        "bamarni/composer-bin-plugin": "^1.5"
     },
     "autoload": {
         "psr-4": {

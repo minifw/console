@@ -24,17 +24,9 @@ use Minifw\Common\FileUtils;
 
 class Cmd
 {
-    /**
-     * @var mixed
-     */
-    public static $cwd;
+    public static ?string $cwd = null;
 
-    /**
-     * @param $array
-     * @param $cfg
-     * @return mixed
-     */
-    public static function getOneParam(&$array, $cfg = '')
+    public static function getOneParam(array &$array, $cfg = '')
     {
         $val = array_shift($array);
 
@@ -69,12 +61,7 @@ class Cmd
         }
     }
 
-    /**
-     * @param $array
-     * @param $cfg
-     * @return mixed
-     */
-    public static function getParam(&$array, $cfg = '')
+    public static function getParam(array &$array, $cfg = '')
     {
         if (is_array($cfg)) {
             $type = isset($cfg['type']) ? $cfg['type'] : '';
@@ -101,12 +88,7 @@ class Cmd
         }
     }
 
-    /**
-     * @param $argv
-     * @param $actions
-     * @return mixed
-     */
-    public static function getAction($argv, $actions)
+    public static function getAction(array $argv, array $actions) : string
     {
         $action = array_shift($argv);
 
@@ -135,12 +117,7 @@ class Cmd
         return $action;
     }
 
-    /**
-     * @param $argv
-     * @param $cfg
-     * @return mixed
-     */
-    public static function getArgs($argv, $cfg)
+    public static function getArgs(array $argv, array $cfg) : array
     {
         $alias = [];
         $names = [];
@@ -175,7 +152,7 @@ class Cmd
                     throw new Exception('参数[' . $name . ']不存在');
                 }
                 $cfg_name = $names[$name];
-            } else if (strncmp('-', $arg_name, 1) == 0) {
+            } elseif (strncmp('-', $arg_name, 1) == 0) {
                 $alia = substr($arg_name, 1);
                 if (!isset($alias[$alia])) {
                     throw new Exception('参数[' . $alia . ']不存在');
@@ -226,10 +203,7 @@ class Cmd
 
     ///////////////////////////////////////////
 
-    /**
-     * @param $path
-     */
-    public static function getFullPath($path)
+    public static function getFullPath(string $path) : string
     {
         if (self::$cwd === null) {
             self::$cwd = str_replace('\\', '/', getcwd());
@@ -243,13 +217,7 @@ class Cmd
 
     /////////////////////////////////////////
 
-    /**
-     * @param $cmd
-     * @param $stream
-     * @param null $mline
-     * @return mixed
-     */
-    public static function execCmd($cmd, $stream = null, $mline = false)
+    public static function execCmd(string $cmd, $stream = null, $mline = false)
     {
         if ($stream !== 1 && $stream !== 2) {
             $stream = false;
@@ -287,13 +255,7 @@ class Cmd
         return $return_value;
     }
 
-    /**
-     * @param $cmd
-     * @param $callback
-     * @param $stream
-     * @return mixed
-     */
-    public static function execCmdCallback($cmd, $callback, $stream = 1)
+    public static function execCmdCallback(string $cmd, callable $callback, int $stream = 1) : int
     {
         if ($stream !== 1 && $stream !== 2) {
             throw new Exception('Unknown stream');
@@ -339,12 +301,7 @@ class Cmd
 
     //////////////////////////////////////////////////////////
 
-    /**
-     * @param $cols
-     * @param $body
-     * @param array $footer
-     */
-    public static function printTable($cols, $body, $footer = [])
+    public static function printTable(array $cols, array $body, array $footer = [])
     {
         $max_len = [];
         $header = [];
@@ -390,31 +347,19 @@ class Cmd
         }
     }
 
-    /**
-     * @param $data
-     */
-    public static function printJson($data)
+    public static function printJson($data) : void
     {
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . PHP_EOL;
+        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
     }
 
-    /**
-     * @param $ex
-     */
-    public static function printException($ex)
+    public static function printException(\Exception $ex) : void
     {
         echo '[' . $ex->getCode() . '] ' . $ex->getFile() . '[' . $ex->getLine() . ']: ' . $ex->getMessage() . "\n";
     }
 
     ///////////////////////////////////////////////////////////
 
-    /**
-     * @param $cols
-     * @param $line
-     * @param $max_len
-     * @param $type
-     */
-    protected static function printLine($cols, $line, $max_len, $type)
+    protected static function printLine(array $cols, array $line, array $maxLen, string $type) : void
     {
         $first = true;
         $str = '';
@@ -435,7 +380,7 @@ class Cmd
                 $pad = STR_PAD_BOTH;
             }
 
-            $str .= '| ' . str_pad($line[$name], $max_len[$name], ' ', $pad);
+            $str .= '| ' . str_pad($line[$name], $maxLen[$name], ' ', $pad);
         }
         echo $str . " |\n";
     }

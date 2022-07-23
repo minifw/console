@@ -21,36 +21,14 @@ namespace Minifw\Console;
 
 class Console
 {
-    /**
-     * @var string
-     */
-    protected $statusLine = '';
-    /**
-     * @var int
-     */
-    protected $lastLen = 0;
-    /**
-     * @var mixed
-     */
+    protected string $statusLine = '';
+    protected int $lastLen = 0;
     protected $stream;
-    /**
-     * @var mixed
-     */
-    protected $width;
-    /**
-     * @var mixed
-     */
-    protected $isTty;
-    /**
-     * @var string
-     */
-    protected $encoding = 'utf-8';
+    protected int $width;
+    protected bool $isTty;
+    protected string $encoding = 'utf-8';
 
-    /**
-     * @param $str
-     * @return mixed
-     */
-    public function strWidth($str)
+    public function strWidth(string $str) : int
     {
         $raw_len = strlen($str);
         $char_len = mb_strlen($str, $this->encoding);
@@ -60,20 +38,15 @@ class Console
         return $char_len + $wchars;
     }
 
-    /**
-     * @param $str
-     * @param $max_width
-     * @return mixed
-     */
-    public function strTruncate($str, $max_width)
+    public function strTruncate(string $str, int $maxWidth) : string
     {
         while (true) {
             $width = $this->strWidth($str);
-            if ($width <= $max_width) {
+            if ($width <= $maxWidth) {
                 break;
             }
 
-            $c = ceil(($width - $max_width) / 2);
+            $c = ceil(($width - $maxWidth) / 2);
             if ($c <= 0) {
                 $c = 1;
             }
@@ -84,11 +57,7 @@ class Console
         return $str;
     }
 
-    /**
-     * @param $stream
-     * @param null $encoding
-     */
-    public function __construct($stream = null, $encoding = 'utf-8')
+    public function __construct($stream = null, string $encoding = 'utf-8')
     {
         if ($stream === null) {
             $this->stream = fopen('php://stdout', 'wb');
@@ -100,10 +69,7 @@ class Console
         $this->encoding = $encoding;
     }
 
-    /**
-     * @return mixed
-     */
-    public function reset()
+    public function reset() : self
     {
         if (!$this->isTty) {
             return $this;
@@ -117,11 +83,7 @@ class Console
         return $this;
     }
 
-    /**
-     * @param $line
-     * @return mixed
-     */
-    public function setStatus($line)
+    public function setStatus(string $line) : self
     {
         if (!$this->isTty) {
             return $this;
@@ -138,27 +100,21 @@ class Console
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function clearStatus()
+    public function clearStatus() : self
     {
         if (!$this->isTty) {
             return $this;
         }
 
         if ($this->lastLen > 0) {
-            $tmp = str_repeat(chr(0x08), $this->lastLen) . str_repeat(" ", $this->lastLen) . str_repeat(chr(0x08), $this->lastLen);
+            $tmp = str_repeat(chr(0x08), $this->lastLen) . str_repeat(' ', $this->lastLen) . str_repeat(chr(0x08), $this->lastLen);
             fwrite($this->stream, $tmp);
         }
 
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function showStatus()
+    public function showStatus() : self
     {
         if (!$this->isTty) {
             return $this;
@@ -168,14 +124,15 @@ class Console
         $this->lastLen = $this->strWidth($this->statusLine);
     }
 
-    function print($str) {
+    public function print(string $str) : self
+    {
         $this->clearStatus();
 
         if (!$this->isTty) {
-            $str = preg_replace("/\033\[\d+m/", '', $str);
+            $str = preg_replace("/\033\\[\\d+m/", '', $str);
         }
 
-        fwrite($this->stream, $str . PHP_EOL);
+        fwrite($this->stream, $str . "\n");
         $this->showStatus();
 
         return $this;

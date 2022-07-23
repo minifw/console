@@ -4,8 +4,8 @@ Cmd args test
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Minifw\Console\Cmd;
 use Minifw\Common\Exception;
+use Minifw\Console\Cmd;
 
 Cmd::printJson([]);
 Cmd::printJson(['test' => 'value']);

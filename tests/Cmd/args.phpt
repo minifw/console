@@ -4,8 +4,8 @@ Cmd args test
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Minifw\Console\Cmd;
 use Minifw\Common\Exception;
+use Minifw\Console\Cmd;
 
 $actions = [
     'find' => '',
@@ -27,12 +27,10 @@ foreach ($args_list as $args) {
     try {
         $action = Cmd::getAction($args, $actions);
         var_dump($action);
-    }
-    catch (Exception $ex) {
-        echo $ex->getMessage() . PHP_EOL;
+    } catch (Exception $ex) {
+        echo $ex->getMessage() . "\n";
     }
 }
-
 
 $test_list = [
     [
@@ -151,14 +149,14 @@ $test_list = [
             'name' => [
                 'default' => null,
                 'alias' => ['s'],
-                'params' => [['type'=>'array', 'data_type'=>'int']],
+                'params' => [['type' => 'array', 'data_type' => 'int']],
             ],
-             'id' => [
+            'id' => [
                 'default' => null,
                 'params' => ['int'],
             ],
         ],
-        'argv' => ['--name', '123', '456', '789', '--id','123'],
+        'argv' => ['--name', '123', '456', '789', '--id', '123'],
     ],
     [
         'cfg' => [
@@ -166,7 +164,7 @@ $test_list = [
                 'default' => null,
                 'require' => true,
                 'alias' => ['s'],
-                'params' => [['type'=>'string', 'default' => 'abc']],
+                'params' => [['type' => 'string', 'default' => 'abc']],
             ],
         ],
         'argv' => ['-s'],
@@ -177,7 +175,7 @@ $test_list = [
                 'default' => null,
                 'require' => true,
                 'alias' => ['s'],
-                'params' => [['type'=>'string', 'default' => 'abc']],
+                'params' => [['type' => 'string', 'default' => 'abc']],
             ],
             'id' => [
                 'default' => null,
@@ -186,7 +184,7 @@ $test_list = [
                 'params' => ['string'],
             ],
         ],
-        'argv' => ['-id','123','-s'],
+        'argv' => ['-id', '123', '-s'],
     ],
 ];
 
@@ -194,9 +192,8 @@ foreach ($test_list as $test) {
     try {
         $result = Cmd::getArgs($test['argv'], $test['cfg']);
         var_dump($result);
-    }
-    catch (Exception $ex) {
-        echo $ex->getMessage() . PHP_EOL;
+    } catch (Exception $ex) {
+        echo $ex->getMessage() . "\n";
     }
 }
 ?>

@@ -7,7 +7,7 @@ use Minifw\Console\OptionParser;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-$cfg = require(__DIR__ . '/option_cfg.php');
+$cfg = require(__DIR__ . '/multi_action.php');
 
 $parser = new OptionParser($cfg);
 
@@ -25,15 +25,15 @@ chdir(__DIR__);
 $input = [
     [
         'action' => 'download',
-        'argv' => ['-sa', 'option_cfg.php'],
+        'argv' => ['-sa', 'multi_action.php'],
     ],
     [
         'action' => 'download',
-        'argv' => ['-sa', 'option_cfg.php', '--retry', '3', '-c', '--', '123', '456'],
+        'argv' => ['-sa', 'multi_action.php', '--retry', '3', '-c', '--', '123', '456'],
     ],
     [
         'action' => 'download',
-        'argv' => ['-sa', 'option_cfg.php1'],
+        'argv' => ['-sa', 'multi_action.php1'],
     ],
     [
         'action' => 'download',
@@ -104,6 +104,11 @@ foreach ($input as $value) {
 echo "\n";
 
 echo $parser->getManual() . "\n";
+
+$cfg = require(__DIR__ . '/single_action.php');
+$parser = new OptionParser($cfg);
+
+echo $parser->getManual() . "\n";
 ?>
 --EXPECTF--
 download
@@ -113,8 +118,8 @@ help
 help2
 操作不存在
 
-{"options":{"continue":false,"save-as":"%s\/tests\/OptionParser\/option_cfg.php","retry":0},"input":[]}
-{"options":{"continue":true,"save-as":"%s\/tests\/OptionParser\/option_cfg.php","retry":3},"input":["123","456"]}
+{"options":{"continue":false,"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":0},"input":[]}
+{"options":{"continue":true,"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":3},"input":["123","456"]}
 文件不存在
 缺少必要参数:save-as
 {"options":{"continue":false,"username":"111","password":"333","save-to":"%s","src":"%s\/tests\/OptionParser\/333"},"input":["123","456"]}
@@ -184,3 +189,27 @@ help2:
 
 help:
     帮助
+
+usage: tool [action] [options] urls ...
+网络工具
+
+--user-list | -ul: array(string, ...)
+    用户列表
+--username | -u: string
+    用户名
+--password | -p: string
+    密码
+--continue | -c
+--no-continue | -no-c
+    断点续传
+    如果指定则会续传
+--retry | -r: int
+    重试次数
+--save-to | -s | -w: dir
+    保存目录
+--save-as | -sa: file
+    保存文件名
+--src | -f: path
+    源路径
+--rate-limit | -l: number
+    带宽限制

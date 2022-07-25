@@ -109,17 +109,22 @@ class OptionParser
         }
 
         $lines[] = '';
-
+        $count = count($this->actions);
         foreach ($this->actions as $name => $action) {
-            $lines[] = $name . ':';
-            if (!empty($action['comment'])) {
-                $lines[] = '    ' . implode("\n    ", $action['comment']);
+            $prefix = '    ';
+            if ($count > 1) {
+                $lines[] = $name . ':';
+                if (!empty($action['comment'])) {
+                    $lines[] = '    ' . implode("\n    ", $action['comment']);
+                }
+                $lines[] = '';
+            } else {
+                $prefix = '';
             }
-            $lines[] = '';
 
             $empty = true;
             foreach ($action['options'] as $name => $option) {
-                $optComment = $option->getManual('    ', $this->oppositePrefix);
+                $optComment = $option->getManual($prefix, $this->oppositePrefix);
                 if (!empty($optComment)) {
                     $lines[] = $optComment;
                     $empty = false;

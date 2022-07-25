@@ -61,27 +61,19 @@ $input = [
     ],
     [
         'action' => 'sync',
-        'argv' => ['--custom', '-no-c', '1'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['--custom', '-no-c', '0'],
-    ],
-    [
-        'action' => 'sync',
         'argv' => ['--custom', '-c'],
     ],
     [
         'action' => 'sync',
-        'argv' => ['-ul', '1', '2', '3', '4', '--custom', '-c', '1'],
+        'argv' => ['-ul', '1', '2', '3', '4', '--custom', '-c'],
     ],
     [
         'action' => 'sync',
-        'argv' => ['--custom', '-c', '0', '-ul', '1', '2', '3', '4'],
+        'argv' => ['--custom', '-c', '-ul', '1', '2', '3', '4'],
     ],
     [
         'action' => 'help',
-        'argv' => ['--custom', '-c', '0'],
+        'argv' => ['--custom', '-c'],
     ],
     [
         'action' => 'help',
@@ -127,11 +119,9 @@ help2
 {"options":{"continue":false,"rate-limit":50.34,"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value"},"input":["123","456"]}
 缺少必要参数:custom
 {"options":{"continue":false,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":false,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
 {"options":{"continue":true,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
 {"options":{"continue":true,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":false,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":true,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
 参数[--custom]不存在
 {"options":[],"input":[]}
 {"options":[],"input":[]}

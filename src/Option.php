@@ -272,14 +272,10 @@ class Option
         } elseif ($this->paramType == self::PARAM_CUSTOM) {
             return ($this->filter)($argv);
         } elseif ($this->paramType == self::PARAM_BOOL) {
-            $value = $this->getOne($argv, $this->paramType);
-            if ($value === null) {
-                $value = true;
-            }
             if ($opposite) {
-                return !$value;
+                return false;
             } else {
-                return $value;
+                return true;
             }
         } else {
             $value = $this->getOne($argv, $this->paramType);

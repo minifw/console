@@ -24,102 +24,14 @@ use Minifw\Common\FileUtils;
 
 class Cmd
 {
-    public static ?string $cwd = null;
-
     public static function getFullPath(string $path) : string
     {
-        if (self::$cwd === null) {
-            self::$cwd = str_replace('\\', '/', getcwd());
-            if (self::$cwd === false) {
-                throw new Exception('获取路径信息失败');
-            }
+        $cwd = str_replace('\\', '/', getcwd());
+        if ($cwd === false) {
+            throw new Exception('获取路径信息失败');
         }
 
-        return FileUtils::pathJoin(self::$cwd, $path);
-    }
-
-    /////////////////////////////////////////
-
-    public static function execCmd(string $cmd, $stream = null, $mline = false)
-    {
-        if ($stream !== 1 && $stream !== 2) {
-            $stream = false;
-        }
-
-        $descriptorspec = [
-            1 => ['file', '/dev/null', 'w'],
-            2 => ['file', '/dev/null', 'w']
-        ];
-        if ($stream !== null) {
-            $descriptorspec[$stream] = ['pipe', 'w'];
-        }
-
-        $process = proc_open($cmd, $descriptorspec, $pipes);
-        $output = [];
-        $return_value = -1;
-
-        if (is_resource($process)) {
-            if ($stream !== null) {
-                $output = stream_get_contents($pipes[$stream]);
-                fclose($pipes[$stream]);
-            }
-
-            $return_value = proc_close($process);
-        }
-
-        if ($stream != null) {
-            if ($mline) {
-                return explode("\n", $output);
-            } else {
-                return $output;
-            }
-        }
-
-        return $return_value;
-    }
-
-    public static function execCmdCallback(string $cmd, callable $callback, int $stream = 1) : int
-    {
-        if ($stream !== 1 && $stream !== 2) {
-            throw new Exception('Unknown stream');
-        }
-
-        $descriptorspec = [
-            1 => ['file', '/dev/null', 'w'],
-            2 => ['file', '/dev/null', 'w']
-        ];
-        $descriptorspec[$stream] = ['pipe', 'w'];
-
-        $process = proc_open($cmd, $descriptorspec, $pipes);
-        $return_value = -1;
-
-        if (is_resource($process)) {
-            stream_set_blocking($pipes[$stream], false);
-
-            while (true) {
-                $status = proc_get_status($process);
-
-                while (true) {
-                    $return_message = fread($pipes[$stream], 1024);
-                    if ($return_message === false || $return_message === '') {
-                        break;
-                    }
-                    call_user_func($callback, $return_message);
-                }
-
-                if (!$status['running']) {
-                    break;
-                }
-
-                usleep(100 * 1000);
-            }
-
-            fclose($pipes[$stream]);
-
-            $return_value = proc_close($process);
-        }
-
-        return $return_value;
+        return FileUtils::pathJoin($cwd, $path);
     }
 
     //////////////////////////////////////////////////////////

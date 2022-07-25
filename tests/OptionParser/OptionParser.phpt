@@ -1,5 +1,5 @@
 --TEST--
-Cmd args test
+OptionParser test
 --FILE--
 <?php
 use Minifw\Common\Exception;
@@ -109,11 +109,11 @@ help
 help2
 操作不存在
 
-{"options":{"continue":false,"save-as":"\/mnt\/hdd\/proj\/tool\/minifw\/console\/tests\/OptionParser\/option_cfg.php","retry":0},"input":[]}
-{"options":{"continue":true,"save-as":"\/mnt\/hdd\/proj\/tool\/minifw\/console\/tests\/OptionParser\/option_cfg.php","retry":3},"input":["123","456"]}
+{"options":{"continue":false,"save-as":"%s\/tests\/OptionParser\/option_cfg.php","retry":0},"input":[]}
+{"options":{"continue":true,"save-as":"%s\/tests\/OptionParser\/option_cfg.php","retry":3},"input":["123","456"]}
 文件不存在
 缺少必要参数:save-as
-{"options":{"continue":false,"username":"111","password":"333","save-to":"\/mnt\/hdd\/proj\/tool\/minifw\/console\/tests\/OptionParser","src":"\/mnt\/hdd\/proj\/tool\/minifw\/console\/tests\/OptionParser\/333"},"input":["123","456"]}
+{"options":{"continue":false,"username":"111","password":"333","save-to":"%s","src":"%s\/tests\/OptionParser\/333"},"input":["123","456"]}
 目录不存在
 {"options":{"continue":false,"rate-limit":50.34,"retry":[111,222,"ffff"],"custom":"custom_value"},"input":["123","456"]}
 缺少必要参数:custom

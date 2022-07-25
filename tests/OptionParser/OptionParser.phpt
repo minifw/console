@@ -73,11 +73,11 @@ $input = [
     ],
     [
         'action' => 'sync',
-        'argv' => ['--custom', '-c', '1'],
+        'argv' => ['-ul', '1', '2', '3', '4', '--custom', '-c', '1'],
     ],
     [
         'action' => 'sync',
-        'argv' => ['--custom', '-c', '0'],
+        'argv' => ['--custom', '-c', '0', '-ul', '1', '2', '3', '4'],
     ],
     [
         'action' => 'help',
@@ -100,6 +100,10 @@ foreach ($input as $value) {
         echo $ex->getMessage() . "\n";
     }
 }
+
+echo "\n";
+
+echo $parser->getManual() . "\n";
 ?>
 --EXPECTF--
 download
@@ -115,14 +119,68 @@ help2
 缺少必要参数:save-as
 {"options":{"continue":false,"username":"111","password":"333","save-to":"%s","src":"%s\/tests\/OptionParser\/333"},"input":["123","456"]}
 目录不存在
-{"options":{"continue":false,"rate-limit":50.34,"retry":[111,222,"ffff"],"custom":"custom_value"},"input":["123","456"]}
+{"options":{"continue":false,"rate-limit":50.34,"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value"},"input":["123","456"]}
 缺少必要参数:custom
-{"options":{"continue":false,"rate-limit":0,"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":false,"rate-limit":0,"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":false,"rate-limit":0,"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":false,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":false,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":true,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":true,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":true,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
+{"options":{"continue":false,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
 参数[--custom]不存在
 {"options":[],"input":[]}
 {"options":[],"input":[]}
+
+usage: tool [action] [options] urls ...
+网络工具
+
+download:
+    下载
+    可以指定多个URL
+
+    --continue | -c
+    --no-continue | -no-c
+        断点续传
+        如果指定则会续传
+    --save-as | -sa: file
+        保存文件名
+    --retry | -r: int
+        重试次数
+
+upload:
+    上传
+
+    --continue | -c
+    --no-continue | -no-c
+        断点续传
+        如果指定则会续传
+    --username | -u: string
+        用户名
+    --password | -p: string
+        密码
+    --save-to | -s | -w: dir
+        保存目录
+    --src | -f: path
+        源路径
+
+sync:
+    同步
+
+    --continue | -c
+    --no-continue | -no-c
+        断点续传
+        如果指定则会续传
+    --rate-limit | -l: number
+        带宽限制
+    --user-list | -ul: array(string, ...)
+        用户列表
+    --retry | -r: int, int, string
+        重试次数
+    --custom | -tom
+        同步方式
+
+help2:
+    帮助
+
+help:
+    帮助

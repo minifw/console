@@ -26,7 +26,7 @@ class Option
 {
     protected string $name = '';
     protected array $alias = [];
-    protected ?string $comment = null;
+    protected ?array $comment = [];
     protected $default = null;
     protected $paramType = null;
     protected int $dataType = 0;
@@ -148,9 +148,17 @@ class Option
             }
         }
 
-        $this->comment = self::getCfg('comment', $cfg, $use);
-        if (!is_string($this->comment) && $this->comment !== null) {
+        $comment = self::getCfg('comment', $cfg, $use);
+        if (is_array($comment)) {
+            $comment = implode("\n", $comment);
+        } elseif (!is_string($comment)) {
             throw new Exception('comment不合法');
+        }
+
+        if ($comment !== '') {
+            $this->comment = explode("\n", $comment);
+        } else {
+            $this->comment = [];
         }
 
         $this->default = self::getCfg('default', $cfg, $use);
@@ -188,6 +196,55 @@ class Option
             }
         } else {
             throw new Exception('paramType不合法');
+        }
+    }
+
+    public function getManual(string $prefix, string $oppositePrefix) : string
+    {
+        $lines = $this->getNameLine($oppositePrefix);
+
+        if (!empty($this->comment)) {
+            $lines[] = '    ' . implode("\n" . $prefix . '    ', $this->comment);
+        }
+
+        return $prefix . implode("\n" . $prefix, $lines);
+    }
+
+    protected function getNameLine(string $oppositePrefix) : array
+    {
+        $lines = [];
+        $params = $this->getParam();
+        $names = '--' . $this->name;
+        if (!empty($this->alias)) {
+            $names .= ' | -' . implode(' | -', $this->alias);
+        }
+
+        $lines[] = $names . $params;
+
+        if (is_int($this->paramType) && $this->paramType === self::PARAM_BOOL && $oppositePrefix !== '') {
+            $names = '--' . $oppositePrefix . $this->name;
+            if (!empty($this->alias)) {
+                $names .= ' | -' . $oppositePrefix . implode(' | -' . $oppositePrefix, $this->alias);
+            }
+            $lines[] = $names . $params;
+        }
+
+        return $lines;
+    }
+
+    protected function getParam()
+    {
+        if (is_array($this->paramType)) {
+            $ret = [];
+            foreach ($this->paramType as $type) {
+                $ret[] = self::$paramTypeHash[$type];
+            }
+
+            return ': ' . implode(', ', $ret);
+        } elseif ($this->paramType === self::PARAM_ARRAY) {
+            return ': array(' . self::$paramTypeHash[$this->dataType] . ', ...)';
+        } elseif ($this->paramType !== self::PARAM_CUSTOM && $this->paramType !== self::PARAM_BOOL) {
+            return ': ' . self::$paramTypeHash[$this->paramType];
         }
     }
 

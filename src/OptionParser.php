@@ -25,7 +25,7 @@ class OptionParser
 {
     protected array $alias = [];
     protected array $actions = [];
-    protected string $comment = '';
+    protected array $comment = [];
     protected string $oppositePrefix = '';
 
     public function __construct(array $cfg)
@@ -101,6 +101,38 @@ class OptionParser
         ];
     }
 
+    public function getManual() : string
+    {
+        $lines = [];
+        if (!empty($this->comment)) {
+            $lines[] = implode("\n", $this->comment);
+        }
+
+        $lines[] = '';
+
+        foreach ($this->actions as $name => $action) {
+            $lines[] = $name . ':';
+            if (!empty($action['comment'])) {
+                $lines[] = '    ' . implode("\n    ", $action['comment']);
+            }
+            $lines[] = '';
+
+            $empty = true;
+            foreach ($action['options'] as $name => $option) {
+                $optComment = $option->getManual('    ', $this->oppositePrefix);
+                if (!empty($optComment)) {
+                    $lines[] = $optComment;
+                    $empty = false;
+                }
+            }
+            if (!$empty) {
+                $lines[] = '';
+            }
+        }
+
+        return implode("\n", $lines);
+    }
+
     //////////////////////////////////////////
 
     protected function getOptName(array &$argv, $cfg) : ?array
@@ -119,7 +151,7 @@ class OptionParser
         if (strncmp('--', $str, 2) !== 0) {
             $alia = substr($str, 1);
 
-            if (strncmp($this->oppositePrefix, $alia, strlen($this->oppositePrefix)) === 0) {
+            if ($this->oppositePrefix !== '' && strncmp($this->oppositePrefix, $alia, strlen($this->oppositePrefix)) === 0) {
                 $opposite = true;
                 $alia = substr($alia, strlen($this->oppositePrefix));
             }
@@ -131,7 +163,7 @@ class OptionParser
         } else {
             $optName = substr($str, 2);
 
-            if (strncmp($this->oppositePrefix, $optName, strlen($this->oppositePrefix)) === 0) {
+            if ($this->oppositePrefix !== '' && strncmp($this->oppositePrefix, $optName, strlen($this->oppositePrefix)) === 0) {
                 $opposite = true;
                 $optName = substr($optName, strlen($this->oppositePrefix));
             }
@@ -151,9 +183,17 @@ class OptionParser
             throw new Exception('oppositePrefix不合法');
         }
 
-        $this->comment = $cfg['comment'] ?? '';
-        if (!is_string($this->comment)) {
+        $comment = $cfg['comment'] ?? '';
+        if (is_array($comment)) {
+            $comment = implode("\n", $comment);
+        } elseif (!is_string($comment)) {
             throw new Exception('comment不合法');
+        }
+
+        if ($comment !== '') {
+            $this->comment = explode("\n", $comment);
+        } else {
+            $this->comment = [];
         }
 
         $commonOptions = [];
@@ -174,8 +214,15 @@ class OptionParser
         foreach ($cfg['actions'] as $actName => $action) {
             $one = [];
             $one['comment'] = $action['comment'] ?? '';
-            if (!is_string($one['comment'])) {
+            if (is_array($one['comment'])) {
+                $one['comment'] = implode("\n", $one['comment']);
+            } elseif (!is_string($one['comment'])) {
                 throw new Exception('actions.' . $actName . '.comment不合法');
+            }
+            if ($one['comment'] !== '') {
+                $one['comment'] = explode("\n", $one['comment']);
+            } else {
+                $one['comment'] = [];
             }
 
             $one['options'] = [];

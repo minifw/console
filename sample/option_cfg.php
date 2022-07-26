@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2021 Yang Ming <yangming0116@163.com>.
+ * Copyright (C) 2022 Yang Ming <yangming0116@163.com>.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

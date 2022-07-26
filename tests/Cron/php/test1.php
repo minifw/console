@@ -16,11 +16,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-require __DIR__ . '/../vendor/autoload.php';
-
-if (!defined('APP_ROOT')) {
-    define('APP_ROOT', dirname(__DIR__));
-}
-
-date_default_timezone_set('PRC');
+sleep(1);
+echo 'test1' . "\n";
+sleep(1);
+echo 'test1 111' . "\n";
+sleep(1);
+echo 'test1 222' . "\n";

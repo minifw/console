@@ -19,15 +19,26 @@
 
 namespace Minifw\Console;
 
+use Closure;
 use Minifw\Common\Exception;
 
 class Process
 {
+    protected string $name = '';
     protected string $cmd;
     protected ?array $env;
     protected ?string $cwd = null;
     protected int $timeout = 0;
     protected string $buffer = '';
+    protected bool $running = false;
+    protected $process;
+    protected array $pipes;
+    protected ?Closure $callback = null;
+    protected $stdin = null;
+    protected $stdout = null;
+    protected $stderr = null;
+    protected $btime = 0;
+    protected $inputFinished = false;
 
     public function __construct(string $cmd, ?string $cwd = null, ?array $env = [])
     {
@@ -36,127 +47,215 @@ class Process
         $this->env = $env;
     }
 
-    public function run($stdin = null, $stdout = null, $stderr = null, ?callable $callback = null) : int
+    public function setName(string $name) : self
     {
-        $desc = [];
+        $this->name = $name;
 
-        if ($stdin !== null) {
+        return $this;
+    }
+
+    public function getName() : string
+    {
+        return $this->name;
+    }
+
+    public function setStdin($stdin) : self
+    {
+        $this->stdin = $stdin;
+
+        return $this;
+    }
+
+    public function setStdout($stdout) : self
+    {
+        $this->stdout = $stdout;
+
+        return $this;
+    }
+
+    public function setStderr($stderr) : self
+    {
+        $this->stderr = $stderr;
+
+        return $this;
+    }
+
+    public function setCallback(?Closure $callback = null) : self
+    {
+        if ($callback !== null) {
+            $this->callback = $callback;
+        } else {
+            $this->callback = null;
+        }
+
+        return $this;
+    }
+
+    public function setTimeout(int $timeout) : self
+    {
+        $this->timeout = $timeout;
+
+        return $this;
+    }
+
+    public function start() : void
+    {
+        if ($this->running) {
+            throw new Exception('程序执行中');
+        }
+        $this->running = true;
+
+        if ($this->stdin !== null) {
             $desc[0] = ['pipe', 'r'];
         }
 
-        if ($callback !== null) {
-            if ($stdout !== null || $stderr !== null) {
+        if ($this->callback !== null) {
+            if ($this->stdout !== null || $this->stderr !== null) {
                 throw new Exception('参数不合法');
             }
             $desc[1] = ['pipe',  'w'];
             $desc[2] = ['pipe',  'w'];
         } else {
-            if ($stdout !== null) {
+            if ($this->stdout !== null) {
                 $desc[1] = ['pipe',  'w'];
             } else {
                 $desc[1] = ['file', '/dev/null', 'w'];
             }
 
-            if ($stderr !== null) {
+            if ($this->stderr !== null) {
                 $desc[2] = ['pipe',  'w'];
             } else {
                 $desc[2] = ['file', '/dev/null', 'w'];
             }
         }
 
-        $process = proc_open($this->cmd, $desc, $pipes, $this->cwd, $this->env);
+        $this->process = proc_open($this->cmd, $desc, $pipes, $this->cwd, $this->env);
 
-        $exitCode = -1;
+        $this->pipes = $pipes;
 
-        if (!is_resource($process)) {
+        if (!is_resource($this->process)) {
             throw new Exception('进程创建失败');
         }
 
-        if ($stdin !== null) {
-            stream_set_blocking($pipes[0], false);
+        if ($this->stdin !== null) {
+            stream_set_blocking($this->stdin, false);
+            stream_set_blocking($this->pipes[0], false);
         }
-        if ($callback !== null || $stdout !== null) {
-            stream_set_blocking($pipes[1], false);
-        }
-        if ($callback !== null || $stderr !== null) {
-            stream_set_blocking($pipes[2], false);
+        if ($this->callback !== null) {
+            stream_set_blocking($this->pipes[1], false);
+            stream_set_blocking($this->pipes[2], false);
+        } else {
+            if ($this->stdout !== null) {
+                stream_set_blocking($this->pipes[1], false);
+                stream_set_blocking($this->stdout, true);
+            }
+
+            if ($this->stderr !== null) {
+                stream_set_blocking($this->pipes[2], false);
+                stream_set_blocking($this->stderr, true);
+            }
         }
 
-        $btime = time();
+        $this->btime = time();
+        $this->inputFinished = false;
+    }
 
-        $ended = false;
+    public function doLoop() : ?int
+    {
+        if (!$this->running) {
+            throw new Exception('程序未启动');
+        }
 
+        $status = proc_get_status($this->process);
+
+        if ($this->stdin !== null && !$this->inputFinished) {
+            $this->inputFinished = $this->streamCopyBuffered($this->stdin, $this->pipes[0]);
+        }
+
+        if ($this->callback === null) {
+            if ($this->stdout !== null) {
+                $this->streamCopy($this->pipes[1], $this->stdout);
+            }
+            if ($this->stderr !== null) {
+                $this->streamCopy($this->pipes[2], $this->stderr);
+            }
+        } else {
+            $this->streamToCallback(1, $this->pipes[1], $this->callback);
+            $this->streamToCallback(2, $this->pipes[2], $this->callback);
+        }
+
+        if (!$status['running']) {
+            $exitCode = $status['exitcode'] ?? -1;
+
+            if ($this->stdin !== null && !$this->inputFinished) {
+                fclose($this->pipes[0]);
+            }
+            if ($this->callback !== null || $this->stdout !== null) {
+                fclose($this->pipes[1]);
+            }
+            if ($this->callback !== null || $this->stderr !== null) {
+                fclose($this->pipes[2]);
+            }
+
+            if ($exitCode == -1) {
+                $exitCode = proc_close($this->process);
+            }
+
+            $this->running = false;
+
+            return $exitCode;
+        }
+
+        $now = time();
+        if ($this->timeout > 0 && $now - $this->btime > $this->timeout) {
+            proc_terminate($this->process, 9);
+        }
+
+        return null;
+    }
+
+    public function run() : int
+    {
+        $this->start();
         while (true) {
-            $status = proc_get_status($process);
-
-            if ($stdin !== null && !$ended) {
-                $ended = $this->streamCopyBuffered($stdin, $pipes[0]);
+            $code = $this->doLoop();
+            if ($code !== null) {
+                return $code;
             }
-
-            if ($callback === null) {
-                if ($stdout !== null) {
-                    self::streamCopy($pipes[1], $stdout);
-                }
-                if ($stderr !== null) {
-                    self::streamCopy($pipes[2], $stderr);
-                }
-            } else {
-                self::streamToCallback(1, $pipes[1], $callback);
-                self::streamToCallback(2, $pipes[2], $callback);
-            }
-
-            if (!$status['running']) {
-                $exitCode = $status['exitcode'] ?? -1;
-                break;
-            }
-
-            $now = time();
-            if ($this->timeout > 0 && $now - $btime > $this->timeout) {
-                proc_terminate($process, 9);
-            }
-
             usleep(100 * 1000);
         }
-
-        if ($stdin !== null && !$ended) {
-            fclose($pipes[0]);
-        }
-        if ($callback !== null || $stdout !== null) {
-            fclose($pipes[1]);
-        }
-        if ($callback !== null || $stderr !== null) {
-            fclose($pipes[2]);
-        }
-
-        if ($exitCode == -1) {
-            $exitCode = proc_close($process);
-        }
-
-        return $exitCode;
     }
 
     public function exec(int $stream = 1, &$exitCode) : ?string
     {
         $tmpFp = fopen('php://temp', 'r+');
 
-        $stdout = null;
-        $stderr = null;
+        try {
+            $stdout = null;
+            $stderr = null;
 
-        if ($stream == 1) {
-            $stdout = $tmpFp;
-        } elseif ($stream == 2) {
-            $stderr = $tmpFp;
-        } else {
-            throw new Exception('参数不合法');
+            if ($stream == 1) {
+                $stdout = $tmpFp;
+            } elseif ($stream == 2) {
+                $stderr = $tmpFp;
+            } else {
+                throw new Exception('参数不合法');
+            }
+
+            $this->setStdout($stdout)
+                ->setStderr($stderr)
+                ->setCallback(null)
+                ->setStdin(null);
+
+            $exitCode = $this->run();
+
+            rewind($tmpFp);
+            $string = stream_get_contents($tmpFp);
+
+            return $string;
+        } finally {
+            fclose($tmpFp);
         }
-
-        $exitCode = $this->run(null, $stdout, $stderr, null);
-
-        rewind($tmpFp);
-        $string = stream_get_contents($tmpFp);
-        fclose($tmpFp);
-
-        return $string;
     }
 
     ///////////////////////////////
@@ -211,7 +310,7 @@ class Process
         }
     }
 
-    protected static function streamCopy($from, $to)
+    protected function streamCopy($from, $to)
     {
         while (true) {
             $msg = fread($from, 1024);
@@ -222,14 +321,14 @@ class Process
         }
     }
 
-    protected static function streamToCallback(int $name, $from, callable $callback)
+    protected function streamToCallback(int $stream, $from, callable $callback)
     {
         while (true) {
             $msg = fread($from, 1024);
             if ($msg === false || $msg === '') {
                 break;
             }
-            call_user_func($callback, $name, $msg);
+            call_user_func($callback, $this->name, $stream, $msg);
         }
     }
 }

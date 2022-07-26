@@ -2,16 +2,16 @@
 Cmd args test
 --FILE--
 <?php
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../bootstrap.php';
 
 use Minifw\Common\Exception;
-use Minifw\Console\Cmd;
+use Minifw\Console\Utils;
 
-Cmd::printJson([]);
-Cmd::printJson(['test' => 'value']);
+Utils::printJson([]);
+Utils::printJson(['test' => 'value']);
 
 $ex = new Exception('msg', 123);
-Cmd::printException($ex);
+Utils::printException($ex);
 
 $cols = [
     [
@@ -30,7 +30,7 @@ $body = [
 ];
 $footer = ['count', 3];
 
-Cmd::printTable($cols, $body, $footer);
+Utils::printTable($cols, $body, $footer);
 ?>
 --EXPECTF--
 []

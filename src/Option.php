@@ -80,21 +80,21 @@ class Option
             case self::PARAM_STRING:
                 return $value;
             case self::PARAM_DIR:
-                $path = Cmd::getFullPath(rtrim(strval($value), '\\/'));
+                $path = Utils::getFullPath(rtrim(strval($value), '\\/'));
                 if (!is_dir($path)) {
                     throw new Exception('目录不存在');
                 }
 
                 return $path;
             case self::PARAM_FILE:
-                $path = Cmd::getFullPath(strval($value));
+                $path = Utils::getFullPath(strval($value));
                 if (!is_file($path)) {
                     throw new Exception('文件不存在');
                 }
 
                 return $path;
             case self::PARAM_PATH:
-                return Cmd::getFullPath(strval($value));
+                return Utils::getFullPath(strval($value));
             default:
                 throw new Exception('参数不合法');
         }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "31c9801758f6df3d38571b0a00991875",
+    "content-hash": "58ca40bceac303eb4988699f0905fac3",
     "packages": [
         {
             "name": "minifw/common",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/minifw/common.git",
-                "reference": "99f0c473adddb6f73cc28b44896fae4b2e41157f"
+                "reference": "a1d258b45cebfa502201c0090662dfe9dd4118a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/minifw/common/zipball/99f0c473adddb6f73cc28b44896fae4b2e41157f",
-                "reference": "99f0c473adddb6f73cc28b44896fae4b2e41157f",
+                "url": "https://api.github.com/repos/minifw/common/zipball/a1d258b45cebfa502201c0090662dfe9dd4118a1",
+                "reference": "a1d258b45cebfa502201c0090662dfe9dd4118a1",
                 "shasum": ""
             },
             "require": {
@@ -63,7 +63,7 @@
                 "issues": "https://github.com/minifw/common/issues",
                 "source": "https://github.com/minifw/common/tree/master"
             },
-            "time": "2022-07-23T07:28:13+00:00"
+            "time": "2022-07-26T11:11:08+00:00"
         }
     ],
     "packages-dev": [

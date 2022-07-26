@@ -17,10 +17,7 @@
  * along with this library.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-require __DIR__ . '/../vendor/autoload.php';
-
-if (!defined('APP_ROOT')) {
-    define('APP_ROOT', dirname(__DIR__));
-}
-
-date_default_timezone_set('PRC');
+sleep(2);
+echo 'test2' . "\n";
+sleep(2);
+echo 'test2 111' . "\n";

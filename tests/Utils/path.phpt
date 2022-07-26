@@ -2,19 +2,19 @@
 Cmd path test
 --FILE--
 <?php
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../bootstrap.php';
 
-use Minifw\Console\Cmd;
+use Minifw\Console\Utils;
 
 chdir(__DIR__);
 
-$path = Cmd::getFullPath('.');
+$path = Utils::getFullPath('.');
 var_dump($path);
 
-$path = Cmd::getFullPath('/tmp/123');
+$path = Utils::getFullPath('/tmp/123');
 var_dump($path);
 
-$path = Cmd::getFullPath('D:\\111\\444');
+$path = Utils::getFullPath('D:\\111\\444');
 var_dump($path);
 ?>
 --EXPECTF--

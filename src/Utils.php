@@ -22,7 +22,7 @@ namespace Minifw\Console;
 use Minifw\Common\Exception;
 use Minifw\Common\FileUtils;
 
-class Cmd
+class Utils
 {
     public static function getFullPath(string $path) : string
     {
@@ -36,7 +36,7 @@ class Cmd
 
     //////////////////////////////////////////////////////////
 
-    public static function printTable(array $cols, array $body, array $footer = [])
+    public static function printTable(array $cols, array $body, array $footer = [], string $prefix = '', bool $return = false) : ?string
     {
         $max_len = [];
         $header = [];
@@ -65,36 +65,63 @@ class Cmd
             $line_count += $v + 3;
         }
 
-        $line_sep = str_repeat('-', $line_count) . "\n";
+        $line_sep = str_repeat('-', $line_count);
 
-        self::printLine($cols, $header, $max_len, 'header');
+        $lines = [];
+        $lines[] = self::printLine($cols, $header, $max_len, 'header');
 
-        echo $line_sep;
+        $lines[] = $line_sep;
 
         foreach ($body as $line) {
-            self::printLine($cols, $line, $max_len, 'body');
+            $lines[] = self::printLine($cols, $line, $max_len, 'body');
         }
 
-        echo $line_sep;
+        $lines[] = $line_sep;
 
         if (!empty($footer)) {
-            self::printLine($cols, $footer, $max_len, 'footer');
+            $lines[] = self::printLine($cols, $footer, $max_len, 'footer');
+        }
+
+        $msg = $prefix . implode("\n" . $prefix, $lines);
+
+        if ($return) {
+            return $msg;
+        } else {
+            echo $msg . "\n";
+
+            return null;
         }
     }
 
-    public static function printJson($data) : void
+    public static function printJson($data, bool $return = false) : ?string
     {
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
+        $msg = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+
+        if ($return) {
+            return $msg;
+        } else {
+            echo $msg . "\n";
+
+            return null;
+        }
     }
 
-    public static function printException(\Exception $ex) : void
+    public static function printException(\Exception $ex, bool $return = false) : ?string
     {
-        echo '[' . $ex->getCode() . '] ' . $ex->getFile() . '[' . $ex->getLine() . ']: ' . $ex->getMessage() . "\n";
+        $msg = '[' . $ex->getCode() . '] ' . $ex->getFile() . '[' . $ex->getLine() . ']: ' . $ex->getMessage();
+
+        if ($return) {
+            return $msg;
+        } else {
+            echo $msg . "\n";
+
+            return null;
+        }
     }
 
     ///////////////////////////////////////////////////////////
 
-    protected static function printLine(array $cols, array $line, array $maxLen, string $type) : void
+    protected static function printLine(array $cols, array $line, array $maxLen, string $type) : string
     {
         $first = true;
         $str = '';
@@ -117,6 +144,7 @@ class Cmd
 
             $str .= '| ' . str_pad($line[$name], $maxLen[$name], ' ', $pad);
         }
-        echo $str . " |\n";
+
+        return $str . ' |';
     }
 }

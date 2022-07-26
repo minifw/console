@@ -5,7 +5,7 @@ OptionParser test
 use Minifw\Common\Exception;
 use Minifw\Console\OptionParser;
 
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../bootstrap.php';
 
 $cfg = require(__DIR__ . '/multi_action.php');
 

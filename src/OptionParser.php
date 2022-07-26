@@ -148,7 +148,9 @@ class OptionParser
         }
 
         if (strncmp('-', $str, 1) !== 0) {
-            throw new Exception('参数[' . $str . ']不存在');
+            array_unshift($argv, $str);
+
+            return null;
         }
 
         $opposite = false;

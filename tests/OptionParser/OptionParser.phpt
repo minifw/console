@@ -150,7 +150,6 @@ upload:
         断点续传
         如果指定则会续传
     --username | -u: string
-        用户名
     --password | -p: string
         密码
     --save-to | -s | -w: dir
@@ -159,7 +158,6 @@ upload:
         源路径
 
 sync:
-    同步
 
     --continue | -c
     --no-continue | -no-c

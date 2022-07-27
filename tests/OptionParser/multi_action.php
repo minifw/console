@@ -6,7 +6,7 @@ return [
     'comment' => ['usage: tool [action] [options] urls ...', '网络工具'],
     'options' => [
         'user-list' => ['alias' => 'ul', 'comment' => '用户列表', 'default' => [], 'paramType' => Option::PARAM_ARRAY, 'dataType' => Option::PARAM_STRING],
-        'username' => ['alias' => 'u', 'comment' => '用户名', 'default' => '', 'paramType' => Option::PARAM_STRING],
+        'username' => ['alias' => 'u', 'default' => '', 'paramType' => Option::PARAM_STRING],
         'password' => ['alias' => 'p', 'comment' => '密码', 'default' => '', 'paramType' => Option::PARAM_STRING],
         'continue' => ['alias' => 'c', 'comment' => ['断点续传', '如果指定则会续传'], 'default' => false, 'paramType' => Option::PARAM_BOOL],
         'retry' => ['alias' => 'r', 'comment' => '重试次数', 'default' => 0, 'paramType' => Option::PARAM_INT],
@@ -28,7 +28,7 @@ return [
             'save-to',
             'src',
         ]],
-        'sync' => ['comment' => '同步', 'options' => [
+        'sync' => ['options' => [
             'continue',
             'rate-limit',
             'user-list',

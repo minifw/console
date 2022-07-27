@@ -151,7 +151,7 @@ class Option
         $comment = self::getCfg('comment', $cfg, $use);
         if (is_array($comment)) {
             $comment = implode("\n", $comment);
-        } elseif (!is_string($comment)) {
+        } elseif (!is_string($comment) && $comment !== null) {
             throw new Exception('comment不合法');
         }
 

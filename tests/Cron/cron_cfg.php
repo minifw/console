@@ -46,5 +46,25 @@ return [
                 'schedule' => ['*', '*', '*', '*', '*'],
             ],
         ],
+        'group4' => [
+            'task1' => [
+                'cmd' => '"' . PHP_BINARY . '" test4.php',
+                'cwd' => __DIR__ . '/php',
+                'timeout' => 0,
+                'schedule' => ['*', '*', '*', '*', '*'],
+            ],
+            'task2' => [
+                'cmd' => '"' . PHP_BINARY . '" test5.php',
+                'cwd' => __DIR__ . '/php',
+                'timeout' => 0,
+                'schedule' => ['*', '*', '*', '*', '*'],
+            ],
+            'task3' => [
+                'cmd' => '"' . PHP_BINARY . '" test6.php',
+                'cwd' => __DIR__ . '/php',
+                'timeout' => 0,
+                'schedule' => ['*', '*', '*', '*', '*'],
+            ],
+        ],
     ]
 ];

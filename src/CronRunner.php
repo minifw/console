@@ -130,12 +130,14 @@ class CronRunner
                     $force = true;
                 }
 
-                $group = new ProcessGroup(function ($name, $stream, $msg) {
+                $taskRunning = [];
+                $group = new ProcessGroup(function ($name, $stream, $msg) use (&$taskRunning) {
+                    if (isset($taskRunning[$name])) {
+                        $name = $name . '.' . $taskRunning[$name];
+                    }
                     $this->log($name, $msg);
                 });
-
                 $groupLeft = $this->groups;
-                $taskRunning = [];
 
                 while (true) {
                     if (empty($groupLeft)) {
@@ -149,7 +151,7 @@ class CronRunner
                             $runData = $this->runData[$gname][$taskName];
 
                             $process = $taskObj->getProcess($runData, $force);
-                            unset($groupCfg[$taskName]);
+                            unset($groupLeft[$gname][$taskName]);
                             if ($process !== null) {
                                 $taskRunning[$gname] = $taskName;
                                 $process->setName($gname);
@@ -157,7 +159,7 @@ class CronRunner
                                 break;
                             }
                         }
-                        if (empty($groupCfg)) {
+                        if (empty($groupLeft[$gname])) {
                             unset($groupLeft[$gname]);
                             continue;
                         }

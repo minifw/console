@@ -155,7 +155,7 @@ class Option
             throw new Exception('comment不合法');
         }
 
-        if ($comment !== '') {
+        if (!empty($comment)) {
             $this->comment = explode("\n", $comment);
         } else {
             $this->comment = [];

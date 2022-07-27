@@ -20,17 +20,29 @@
 namespace Minifw\Console\Tests\Command;
 
 use Minifw\Console\Command;
+use Minifw\Console\Option;
 
-class Cmd1 extends Command
+class Cmd2 extends Command
 {
     public static function getConfig() : array
     {
         return [
-            'comment' => ['usage: cmd1 bbaba', 'bbaba'],
+            'comment' => ['usage: cmd2 bbaba', 'bbaba'],
+            'global' => [
+                'config' => [
+                    'comment' => 'config file',
+                    'paramType' => Option::PARAM_STRING,
+                    'default' => '',
+                ],
+            ],
             'actions' => [
                 'act1' => [
                     'comment' => 'act1 ggg',
                     'options' => [
+                        'range' => [
+                            'default' => [0, 0],
+                            'paramType' => [Option::PARAM_INT, Option::PARAM_INT],
+                        ],
                     ],
                 ],
                 'act2' => [

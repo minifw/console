@@ -25,12 +25,87 @@ class OptionParser
 {
     protected array $alias = [];
     protected array $actions = [];
+    protected array $global = [];
     protected array $comment = [];
     protected string $oppositePrefix = '';
 
     public function __construct(array $cfg)
     {
         $this->init($cfg);
+    }
+
+    public function parse(array $argv) : array
+    {
+        $action = null;
+        $global = [];
+        $options = [];
+
+        foreach ($this->global as $name => $optObj) {
+            $global[$name] = $optObj->getDefault();
+        }
+
+        while (true) {
+            if (empty($argv)) {
+                break;
+            }
+
+            $token = array_shift($argv);
+
+            if ($token === '--') {
+                break;
+            }
+
+            if (strncmp('-', $token, 1) === 0) {
+                $optInfo = $this->getOptInfo($token, $action);
+                if ($optInfo === null) {
+                    throw new Exception('参数不合法');
+                }
+                if ($optInfo['type'] == 'global') {
+                    $optObj = $this->global[$optInfo['name']];
+                    $global[$optInfo['name']] = $optObj->getValue($argv, $optInfo['opposite']);
+                } elseif ($optInfo['type'] == 'action' && $action !== null) {
+                    $optObj = $this->actions[$action]['options'][$optInfo['name']];
+                    $options[$optInfo['name']] = $optObj->getValue($argv, $optInfo['opposite']);
+                } else {
+                    throw new Exception('参数不合法');
+                }
+            } else {
+                if ($action === null) {
+                    $action = $this->getAction($token);
+
+                    $cfg = $this->actions[$action];
+                    foreach ($cfg['options'] as $name => $optObj) {
+                        $options[$name] = $optObj->getDefault();
+                    }
+                } else {
+                    array_unshift($argv, $token);
+                    break;
+                }
+            }
+        }
+
+        if ($action === null) {
+            throw new Exception('必须指定操作');
+        } else {
+            foreach ($options as $name => $value) {
+                if ($value === null) {
+                    throw new Exception('缺少必要参数:' . $name);
+                }
+            }
+        }
+
+        foreach ($global as $name => $value) {
+            if ($value === null) {
+                throw new Exception('缺少必要参数:' . $name);
+            }
+        }
+
+        return [
+            'action' => $action,
+            'options' => $options,
+            'global' => $global,
+            'input' => $argv,
+        ];
     }
 
     public function getAction(string $action) : string
@@ -58,54 +133,22 @@ class OptionParser
         return $find[0];
     }
 
-    public function getOptions(string $action, array $argv) : array
-    {
-        if (!isset($this->actions[$action])) {
-            throw new Exception('操作不存在:' . $action);
-        }
-
-        $cfg = $this->actions[$action];
-
-        $result = [];
-        foreach ($cfg['options'] as $name => $optObj) {
-            $result[$name] = $optObj->getDefault();
-        }
-
-        while (true) {
-            if (empty($argv)) {
-                break;
-            }
-
-            $optinfo = $this->getOptName($argv, $cfg);
-            if ($optinfo === null) {
-                break;
-            }
-
-            $opposite = $optinfo[1];
-            $optName = $optinfo[0];
-
-            $optObj = $cfg['options'][$optName];
-
-            $result[$optName] = $optObj->getValue($argv, $opposite);
-        }
-
-        foreach ($result as $optName => $value) {
-            if ($value === null) {
-                throw new Exception('缺少必要参数:' . $optName);
-            }
-        }
-
-        return [
-            'options' => $result,
-            'input' => $argv,
-        ];
-    }
-
     public function getManual() : string
     {
         $lines = [];
         if (!empty($this->comment)) {
             $lines[] = implode("\n", $this->comment);
+        }
+
+        if (!empty($this->global)) {
+            $lines[] = '';
+            $lines[] = '全局选项:';
+            foreach ($this->global as $name => $option) {
+                $optComment = $option->getManual('', $this->oppositePrefix);
+                if (!empty($optComment)) {
+                    $lines[] = $optComment;
+                }
+            }
         }
 
         $lines[] = '';
@@ -140,16 +183,9 @@ class OptionParser
 
     //////////////////////////////////////////
 
-    protected function getOptName(array &$argv, $cfg) : ?array
+    protected function getOptInfo(string $str, ?string $action) : ?array
     {
-        $str = array_shift($argv);
-        if ($str === '--') {
-            return null;
-        }
-
         if (strncmp('-', $str, 1) !== 0) {
-            array_unshift($argv, $str);
-
             return null;
         }
 
@@ -163,10 +199,25 @@ class OptionParser
                 $alia = substr($alia, strlen($this->oppositePrefix));
             }
 
-            if (!isset($cfg['alias'][$alia])) {
+            if (isset($this->alias[$alia])) {
+                $optName = $this->alias[$alia];
+
+                return [
+                    'name' => $optName,
+                    'opposite' => $opposite,
+                    'type' => 'global',
+                ];
+            } elseif ($action !== null && isset($this->actions[$action]['alias'][$alia])) {
+                $optName = $this->actions[$action]['alias'][$alia];
+
+                return [
+                    'name' => $optName,
+                    'opposite' => $opposite,
+                    'type' => 'action',
+                ];
+            } else {
                 throw new Exception('参数[' . $str . ']不存在');
             }
-            $optName = $cfg['alias'][$alia];
         } else {
             $optName = substr($str, 2);
 
@@ -175,12 +226,22 @@ class OptionParser
                 $optName = substr($optName, strlen($this->oppositePrefix));
             }
 
-            if (!isset($cfg['options'][$optName])) {
+            if (isset($this->global[$optName])) {
+                return [
+                    'name' => $optName,
+                    'opposite' => $opposite,
+                    'type' => 'global',
+                ];
+            } elseif ($action !== null && isset($this->actions[$action]['options'][$optName])) {
+                return [
+                    'name' => $optName,
+                    'opposite' => $opposite,
+                    'type' => 'action',
+                ];
+            } else {
                 throw new Exception('参数[' . $str . ']不存在');
             }
         }
-
-        return [$optName, $opposite];
     }
 
     protected function init(array $cfg) : void
@@ -197,19 +258,47 @@ class OptionParser
             throw new Exception('comment不合法');
         }
 
-        if ($comment !== '') {
+        if (!empty($comment)) {
             $this->comment = explode("\n", $comment);
         } else {
             $this->comment = [];
         }
 
-        $commonOptions = [];
-        if (!empty($cfg['options'])) {
-            foreach ($cfg['options'] as $name => $option) {
+        $template = [];
+        if (!empty($cfg['template'])) {
+            foreach ($cfg['template'] as $name => $option) {
                 try {
-                    $commonOptions[$name] = new Option($name, $option);
+                    $template[$name] = new Option($name, $option);
                 } catch (Exception $ex) {
-                    throw new Exception('options.' . $name . '不合法:' . $ex->getMessage());
+                    throw new Exception('template.' . $name . '不合法:' . $ex->getMessage());
+                }
+            }
+        }
+
+        if (!empty($cfg['global'])) {
+            foreach ($cfg['global'] as $name => $option) {
+                try {
+                    if (is_int($name)) {
+                        if (is_string($option)) {
+                            $name = $option;
+                            $option = [
+                                'use' => $name
+                            ];
+                        } else {
+                            throw new Exception('global.' . $name . '不合法');
+                        }
+                    }
+                    $this->global[$name] = new Option($name, $option, $template);
+                } catch (Exception $ex) {
+                    throw new Exception('global.' . $name . '不合法:' . $ex->getMessage());
+                }
+
+                $alias = $this->global[$name]->getAlias();
+                foreach ($alias as $str) {
+                    if (isset($this->alias[$str])) {
+                        throw new Exception('别名存在冲突: ' . $str);
+                    }
+                    $this->alias[$str] = $name;
                 }
             }
         }
@@ -226,7 +315,8 @@ class OptionParser
             } elseif (!is_string($one['comment'])) {
                 throw new Exception('actions.' . $actName . '.comment不合法');
             }
-            if ($one['comment'] !== '') {
+
+            if (!empty($one['comment'])) {
                 $one['comment'] = explode("\n", $one['comment']);
             } else {
                 $one['comment'] = [];
@@ -252,15 +342,19 @@ class OptionParser
                         }
                     }
 
+                    if (isset($this->global[$optName])) {
+                        throw new Exception('选项名称冲突:' . $optName);
+                    }
+
                     try {
-                        $optObj = new Option($optName, $option, $commonOptions);
+                        $optObj = new Option($optName, $option, $template);
                     } catch (Exception $ex) {
                         throw new Exception('actions.' . $actName . '.options.' . $optName . '不合法:' . $ex->getMessage());
                     }
 
                     $alias = $optObj->getAlias();
                     foreach ($alias as $str) {
-                        if (isset($one['alias'][$str])) {
+                        if (isset($one['alias'][$str]) || isset($this->alias[$str])) {
                             throw new Exception('别名存在冲突: ' . $str);
                         }
                         $one['alias'][$str] = $optName;

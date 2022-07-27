@@ -20,7 +20,7 @@ use Minifw\Console\Option;
 return [
     'oppositePrefix' => 'no-', //对于bool类型的选项，添加该前缀会将其值设置为false，例如 --no-auto-redirect 或 -no-p
     'comment' => '程序说明', //程序说明
-    'options' => [//公共选项定义，之后可以在操作定义中引用
+    'template' => [//公共选项定义，之后可以在操作定义中引用
         'id-list' => [ //选项1定义使用时用`--`作为前缀
             'alias' => 'id', //选项别名，使用时用`-`作为前缀，存在多个时使用数组代替
             'comment' => 'id列表', //选项说明
@@ -33,10 +33,24 @@ return [
             //...
         ]
     ],
+    'global' => [ //全局选项
+        'url' => [ //选项1定义
+            //...
+        ],
+        'username', //使用公共选项
+        'email' => [
+            'use' => 'username', //使用公共选项
+        ],
+        'password' => [
+            'use' => 'password',
+            'comment' => 'xxxxx', //使用公共选项时可以在这里覆盖公共选项的某些属性
+            'alias' => ['p', 'pwd'],
+        ],
+    ],
     'actions' => [ //操作列表
         'download' => [ //操作1的定义
             'comment' => '下载文件', //操作说明
-            'options' => [ //参数列表
+            'options' => [ //选项列表
                 'url' => [ //选项1定义
                     //...
                 ],

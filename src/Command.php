@@ -24,25 +24,35 @@ use Exception;
 abstract class Command
 {
     protected OptionParser $parser;
+    protected string $function;
+    protected array $options = [];
+    protected array $input = [];
 
-    public function __construct(OptionParser $parser)
+    public function __construct(OptionParser $parser, array $argv = [])
     {
         $this->parser = $parser;
-    }
 
-    public function run(array $argv) : void
-    {
-        $action = array_shift($argv);
+        $info = $this->parser->parse($argv);
 
-        $action = $this->parser->getAction($action);
-        $options = $this->parser->getOptions($action, $argv);
+        $action = $info['action'];
+        $this->options = $info['options'];
+        $this->input = $info['input'];
 
-        $function = 'do' . ucfirst($action);
-        if (!method_exists($this, $function)) {
+        $this->function = 'do' . ucfirst($action);
+        if (!method_exists($this, $this->function)) {
             throw new Exception('操作不存在');
         }
 
-        call_user_func([$this, $function], $options);
+        $this->init($info['global']);
+    }
+
+    protected function init(array $global)
+    {
+    }
+
+    public function run() : void
+    {
+        call_user_func([$this, $this->function], $this->options, $this->input);
     }
 
     abstract public static function getConfig() : array;

@@ -23,71 +23,27 @@ echo "\n";
 
 chdir(__DIR__);
 $input = [
-    [
-        'action' => 'download',
-        'argv' => ['-sa', 'multi_action.php'],
-    ],
-    [
-        'action' => 'download',
-        'argv' => ['-sa', 'multi_action.php', '--retry', '3', '-c', '--', '123', '456'],
-    ],
-    [
-        'action' => 'download',
-        'argv' => ['-sa', 'multi_action.php1'],
-    ],
-    [
-        'action' => 'download',
-        'argv' => ['--retry', '3', '-c', '--', '123', '456'],
-    ],
-    [
-        'action' => 'upload',
-        'argv' => ['--username', '111', '-p', '333', '--save-to', __DIR__, '--src', __DIR__ . '/333', '--', '123', '456'],
-    ],
-    [
-        'action' => 'upload',
-        'argv' => ['--username', '111', '-p', '333', '--save-to', __DIR__ . '/444', '--src', __DIR__ . '/333', '--', '123', '456'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['--custom', '--retry',  '111', '222', 'ffff', '--rate-limit', '50.34', '--', '123', '456'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['--retry',  '111', '222', 'ffff', '--rate-limit', '50.34', '--', '123', '456'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['--custom', '-no-c'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['--custom', '-c'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['-ul', '1', '2', '3', '4', '--custom', '-c'],
-    ],
-    [
-        'action' => 'sync',
-        'argv' => ['--custom', '-c', '-ul', '1', '2', '3', '4'],
-    ],
-    [
-        'action' => 'help',
-        'argv' => ['--custom', '-c'],
-    ],
-    [
-        'action' => 'help',
-        'argv' => [],
-    ],
-    [
-        'action' => 'help2',
-        'argv' => [],
-    ],
+    ['download', '-sa', 'multi_action.php'],
+    ['download', '-sa', 'multi_action.php', '-l', '0'],
+    ['-l', '0', 'download', '-sa', 'multi_action.php', '--retry', '3', '-c', '--', '123', '456'],
+    ['-l', '0', 'download', '-sa', 'multi_action.php1'],
+    ['-l', '0', 'download', '--retry', '3', '-c', '123', '456'],
+    ['-l', '0', 'upload', '--username', '111', '-p', '333', '--save-to', __DIR__, '--src', __DIR__ . '/333', '--', '123', '456'],
+    ['-l', '0', 'upload', '--username', '111', '-p', '333', '--save-to', __DIR__ . '/444', '--src', __DIR__ . '/333', '--', '123', '456'],
+    ['-l', '0', 'sync', '--custom', '--retry',  '111', '222', 'ffff', '--rate-limit', '50.34', '--', '123', '456'],
+    ['-l', '0', 'sync', '--retry',  '111', '222', 'ffff', '--rate-limit', '50.34', '--', '123', '456'],
+    ['-l', '0', 'sync', '--custom', '-no-c'],
+    ['-l', '0', 'sync', '--custom', '-c'],
+    ['-l', '0', 'sync', '-ul', '1', '2', '3', '4', '--custom', '-c'],
+    ['-l', '0', 'sync', '--custom', '-c', '-ul', '1', '2', '3', '4'],
+    ['-l', '0', 'help', '--custom', '-c'],
+    ['-l', '0', 'help'],
+    ['-l', '0', 'help2'],
 ];
 
 foreach ($input as $value) {
     try {
-        echo json_encode($parser->getOptions($value['action'], $value['argv'], JSON_UNESCAPED_UNICODE)) . "\n";
+        echo json_encode($parser->parse($value), JSON_UNESCAPED_UNICODE) . "\n";
     } catch (Exception $ex) {
         echo $ex->getMessage() . "\n";
     }
@@ -110,33 +66,38 @@ help
 help2
 操作不存在
 
-{"options":{"continue":false,"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":0},"input":[]}
-{"options":{"continue":true,"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":3},"input":["123","456"]}
+缺少必要参数:rate-limit
+{"action":"download","options":{"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":0},"global":{"continue":false,"rate-limit":0},"input":[]}
+{"action":"download","options":{"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":3},"global":{"continue":true,"rate-limit":0},"input":["123","456"]}
 文件不存在
 缺少必要参数:save-as
-{"options":{"continue":false,"username":"111","password":"333","save-to":"%s","src":"%s\/tests\/OptionParser\/333"},"input":["123","456"]}
+{"action":"upload","options":{"username":"111","password":"333","save-to":"%s\/tests\/OptionParser","src":"%s\/tests\/OptionParser\/333"},"global":{"continue":false,"rate-limit":0},"input":["123","456"]}
 目录不存在
-{"options":{"continue":false,"rate-limit":50.34,"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value"},"input":["123","456"]}
+{"action":"sync","options":{"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value"},"global":{"continue":false,"rate-limit":50.34},"input":["123","456"]}
 缺少必要参数:custom
-{"options":{"continue":false,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"user-list":[],"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
-{"options":{"continue":true,"rate-limit":0,"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"input":[]}
+{"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value"},"global":{"continue":false,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
 参数[--custom]不存在
-{"options":[],"input":[]}
-{"options":[],"input":[]}
+{"action":"help","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
+{"action":"help2","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
 
 usage: tool [action] [options] urls ...
 网络工具
+
+全局选项:
+--continue | -c
+--no-continue | -no-c
+    断点续传
+    如果指定则会续传
+--rate-limit | -l: number
+    带宽限制
 
 download:
     下载
     可以指定多个URL
 
-    --continue | -c
-    --no-continue | -no-c
-        断点续传
-        如果指定则会续传
     --save-as | -sa: file
         保存文件名
     --retry | -r: int
@@ -145,10 +106,6 @@ download:
 upload:
     上传
 
-    --continue | -c
-    --no-continue | -no-c
-        断点续传
-        如果指定则会续传
     --username | -u: string
     --password | -p: string
         密码
@@ -159,12 +116,6 @@ upload:
 
 sync:
 
-    --continue | -c
-    --no-continue | -no-c
-        断点续传
-        如果指定则会续传
-    --rate-limit | -l: number
-        带宽限制
     --user-list | -ul: array(string, ...)
         用户列表
     --retry | -r: int, int, string

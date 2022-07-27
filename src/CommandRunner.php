@@ -49,10 +49,10 @@ class CommandRunner
 
             $cfg = $classname::getConfig();
             $parser = new OptionParser($cfg);
-            $obj = new $classname($parser);
+            $obj = new $classname($parser, $argv);
 
             set_time_limit(0);
-            $obj->run($argv);
+            $obj->run();
         } catch (Exception $ex) {
             Utils::printException($ex);
         }

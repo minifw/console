@@ -30,7 +30,7 @@ abstract class Command
         $this->parser = $parser;
     }
 
-    public function run($argv)
+    public function run(array $argv) : void
     {
         $action = array_shift($argv);
 

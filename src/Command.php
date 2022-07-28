@@ -24,7 +24,7 @@ use Exception;
 abstract class Command
 {
     protected OptionParser $parser;
-    protected string $function;
+    protected string $action;
     protected array $options = [];
     protected array $input = [];
 
@@ -34,14 +34,9 @@ abstract class Command
 
         $info = $this->parser->parse($argv);
 
-        $action = $info['action'];
+        $this->action = $info['action'];
         $this->options = $info['options'];
         $this->input = $info['input'];
-
-        $this->function = 'do' . ucfirst($action);
-        if (!method_exists($this, $this->function)) {
-            throw new Exception('操作不存在');
-        }
 
         $this->init($info['global']);
     }
@@ -52,7 +47,11 @@ abstract class Command
 
     public function run() : void
     {
-        call_user_func([$this, $this->function], $this->options, $this->input);
+        $function = 'do' . ucfirst($this->action);
+        if (!method_exists($this, $function)) {
+            throw new Exception('操作不存在');
+        }
+        call_user_func([$this, $function], $this->options, $this->input);
     }
 
     abstract public static function getConfig() : array;

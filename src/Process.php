@@ -39,6 +39,7 @@ class Process
     protected $stderr = null;
     protected $btime = 0;
     protected $inputFinished = false;
+    const MAX_LOOP = 5;
 
     public function __construct(string $cmd, ?string $cwd = null, ?array $env = [])
     {
@@ -167,24 +168,36 @@ class Process
         }
 
         $status = proc_get_status($this->process);
+        $isProcessing = false;
 
         if ($this->stdin !== null && !$this->inputFinished) {
             $this->inputFinished = $this->streamCopyBuffered($this->stdin, $this->pipes[0]);
+            if (!$this->inputFinished) {
+                $isProcessing = true;
+            }
         }
 
         if ($this->callback === null) {
             if ($this->stdout !== null) {
-                $this->streamCopy($this->pipes[1], $this->stdout);
+                if ($this->streamCopy($this->pipes[1], $this->stdout)) {
+                    $isProcessing = true;
+                }
             }
             if ($this->stderr !== null) {
-                $this->streamCopy($this->pipes[2], $this->stderr);
+                if ($this->streamCopy($this->pipes[2], $this->stderr)) {
+                    $isProcessing = true;
+                }
             }
         } else {
-            $this->streamToCallback(1, $this->pipes[1], $this->callback);
-            $this->streamToCallback(2, $this->pipes[2], $this->callback);
+            if ($this->streamToCallback(1, $this->pipes[1], $this->callback)) {
+                $isProcessing = true;
+            }
+            if ($this->streamToCallback(2, $this->pipes[2], $this->callback)) {
+                $isProcessing = true;
+            }
         }
 
-        if (!$status['running']) {
+        if (!$isProcessing && !$status['running']) {
             $exitCode = $status['exitcode'] ?? -1;
 
             if ($this->stdin !== null && !$this->inputFinished) {
@@ -262,27 +275,29 @@ class Process
 
     protected function streamCopyBuffered($from, $to)
     {
-        if (!$this->writeBuffer($to)) {
-            return false;
+        for ($i = 0; $i < self::MAX_LOOP; $i++) {
+            if (!$this->writeBuffer($to)) {
+                return false;
+            }
+
+            if (feof($from)) {
+                fclose($to);
+
+                return true;
+            }
+
+            $msg = fread($from, 8192);
+
+            if ($msg === false) {
+                fclose($to);
+
+                return true;
+            } elseif ($msg === '') {
+                return false;
+            }
+
+            $this->buffer = $msg;
         }
-
-        if (feof($from)) {
-            fclose($to);
-
-            return true;
-        }
-
-        $msg = fread($from, 8192);
-
-        if ($msg === false) {
-            fclose($to);
-
-            return true;
-        } elseif ($msg === '') {
-            return false;
-        }
-
-        $this->buffer = $msg;
     }
 
     protected function writeBuffer($to) : bool
@@ -310,19 +325,23 @@ class Process
 
     protected function streamCopy($from, $to)
     {
-        $msg = fread($from, 8192);
-        if ($msg === false || $msg === '') {
-            return;
+        for ($i = 0; $i < self::MAX_LOOP; $i++) {
+            $msg = fread($from, 8192);
+            if ($msg === false || $msg === '') {
+                return;
+            }
+            fwrite($to, $msg);
         }
-        fwrite($to, $msg);
     }
 
     protected function streamToCallback(int $stream, $from, callable $callback)
     {
-        $msg = fread($from, 8192);
-        if ($msg === false || $msg === '') {
-            return;
+        for ($i = 0; $i < self::MAX_LOOP; $i++) {
+            $msg = fread($from, 8192);
+            if ($msg === false || $msg === '') {
+                return;
+            }
+            call_user_func($callback, $this->name, $stream, $msg);
         }
-        call_user_func($callback, $this->name, $stream, $msg);
     }
 }

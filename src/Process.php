@@ -222,7 +222,7 @@ class Process
             if ($code !== null) {
                 return $code;
             }
-            usleep(100 * 1000);
+            usleep(100);
         }
     }
 
@@ -262,29 +262,27 @@ class Process
 
     protected function streamCopyBuffered($from, $to)
     {
-        while (true) {
-            if (!$this->writeBuffer($to)) {
-                return false;
-            }
-
-            if (feof($from)) {
-                fclose($to);
-
-                return true;
-            }
-
-            $msg = fread($from, 1024);
-
-            if ($msg === false) {
-                fclose($to);
-
-                return true;
-            } elseif ($msg === '') {
-                return false;
-            }
-
-            $this->buffer = $msg;
+        if (!$this->writeBuffer($to)) {
+            return false;
         }
+
+        if (feof($from)) {
+            fclose($to);
+
+            return true;
+        }
+
+        $msg = fread($from, 8192);
+
+        if ($msg === false) {
+            fclose($to);
+
+            return true;
+        } elseif ($msg === '') {
+            return false;
+        }
+
+        $this->buffer = $msg;
     }
 
     protected function writeBuffer($to) : bool
@@ -312,23 +310,19 @@ class Process
 
     protected function streamCopy($from, $to)
     {
-        while (true) {
-            $msg = fread($from, 1024);
-            if ($msg === false || $msg === '') {
-                break;
-            }
-            fwrite($to, $msg);
+        $msg = fread($from, 8192);
+        if ($msg === false || $msg === '') {
+            return;
         }
+        fwrite($to, $msg);
     }
 
     protected function streamToCallback(int $stream, $from, callable $callback)
     {
-        while (true) {
-            $msg = fread($from, 1024);
-            if ($msg === false || $msg === '') {
-                break;
-            }
-            call_user_func($callback, $this->name, $stream, $msg);
+        $msg = fread($from, 8192);
+        if ($msg === false || $msg === '') {
+            return;
         }
+        call_user_func($callback, $this->name, $stream, $msg);
     }
 }

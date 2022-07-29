@@ -66,20 +66,20 @@ help
 help2
 操作不存在
 
-缺少必要参数:rate-limit
+缺少必要选项: --rate-limit
 {"action":"download","options":{"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":0},"global":{"continue":false,"rate-limit":0},"input":[]}
 {"action":"download","options":{"save-as":"%s\/tests\/OptionParser\/multi_action.php","retry":3},"global":{"continue":true,"rate-limit":0},"input":["123","456"]}
 文件不存在
-缺少必要参数:save-as
+缺少必要选项: --save-as
 {"action":"upload","options":{"username":"111","password":"333","save-to":"%s\/tests\/OptionParser","src":"%s\/tests\/OptionParser\/333"},"global":{"continue":false,"rate-limit":0},"input":["123","456"]}
 目录不存在
 {"action":"sync","options":{"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value"},"global":{"continue":false,"rate-limit":50.34},"input":["123","456"]}
-缺少必要参数:custom
+缺少必要选项: --custom
 {"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value"},"global":{"continue":false,"rate-limit":0},"input":[]}
 {"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
 {"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
 {"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
-参数[--custom]不存在
+选项不存在: --custom
 {"action":"help","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
 {"action":"help2","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
 

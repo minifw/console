@@ -124,7 +124,7 @@ class Option
         $use = null;
         if (isset($cfg['use'])) {
             if ($commonOptions === null) {
-                throw new Exception('公共参数不能使用use');
+                throw new Exception('模板中不能使用use');
             }
             if (!is_string($cfg['use'])) {
                 throw new Exception('use不合法');
@@ -252,7 +252,7 @@ class Option
     {
         if ($opposite) {
             if (!is_int($this->paramType) || $this->paramType != self::PARAM_BOOL) {
-                throw new Exception('参数不合法');
+                throw new Exception('选项不合法');
             }
         }
 

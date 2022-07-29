@@ -58,7 +58,7 @@ class OptionParser
             if (strncmp('-', $token, 1) === 0) {
                 $optInfo = $this->getOptInfo($token, $action);
                 if ($optInfo === null) {
-                    throw new Exception('参数不合法');
+                    throw new Exception('选项不合法: ' . $token);
                 }
                 if ($optInfo['type'] == 'global') {
                     $optObj = $this->global[$optInfo['name']];
@@ -67,7 +67,7 @@ class OptionParser
                     $optObj = $this->actions[$action]['options'][$optInfo['name']];
                     $options[$optInfo['name']] = $optObj->getValue($argv, $optInfo['opposite']);
                 } else {
-                    throw new Exception('参数不合法');
+                    throw new Exception('选项不合法: ' . $token);
                 }
             } else {
                 if ($action === null) {
@@ -89,14 +89,14 @@ class OptionParser
         } else {
             foreach ($options as $name => $value) {
                 if ($value === null) {
-                    throw new Exception('缺少必要参数:' . $name);
+                    throw new Exception('缺少必要选项: --' . $name);
                 }
             }
         }
 
         foreach ($global as $name => $value) {
             if ($value === null) {
-                throw new Exception('缺少必要参数:' . $name);
+                throw new Exception('缺少必要选项: --' . $name);
             }
         }
 
@@ -216,7 +216,7 @@ class OptionParser
                     'type' => 'action',
                 ];
             } else {
-                throw new Exception('参数[' . $str . ']不存在');
+                throw new Exception('选项不存在: ' . $str);
             }
         } else {
             $optName = substr($str, 2);
@@ -239,7 +239,7 @@ class OptionParser
                     'type' => 'action',
                 ];
             } else {
-                throw new Exception('参数[' . $str . ']不存在');
+                throw new Exception('选项不存在: ' . $str);
             }
         }
     }

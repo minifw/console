@@ -49,7 +49,7 @@ bbaba
 act1:
     act1 ggg
 
-    --range: int, int
+    --range: array(int, int)
 
 act2:
     act1 ggg
@@ -67,7 +67,7 @@ bbaba
 act1:
     act1 ggg
 
-    --range: int, int
+    --range: array(int, int)
 
 act2:
     act1 ggg

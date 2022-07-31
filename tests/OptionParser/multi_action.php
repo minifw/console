@@ -35,6 +35,12 @@ return [
             'custom' => ['alias' => 'tom', 'comment' => '同步方式', 'type' => Option::PARAM_CUSTOM, 'filter' => function (array &$argv) {
                 return 'custom_value';
             }],
+            'type' => [
+                'type' => Option::PARAM_ENUM,
+                'paramValues' => ['one', 'two', 'three'],
+                'comment' => '同步逻辑',
+                'default' => 'one'
+            ],
         ]],
         'help2' => [
             'comment' => '帮助',

@@ -34,8 +34,8 @@ $input = [
     ['-l', '0', 'sync', '--retry',  '111', '222', 'ffff', '--rate-limit', '50.34', '--', '123', '456'],
     ['-l', '0', 'sync', '--custom', '-no-c'],
     ['-l', '0', 'sync', '--custom', '-c'],
-    ['-l', '0', 'sync', '-ul', '1', '2', '3', '4', '--custom', '-c'],
-    ['-l', '0', 'sync', '--custom', '-c', '-ul', '1', '2', '3', '4'],
+    ['-l', '0', 'sync', '-ul', '1', '2', '3', '4', '--custom', '-c', '--type', 'two'],
+    ['-l', '0', 'sync', '--custom', '-c', '-ul', '1', '2', '3', '4', '--type', 'three'],
     ['-l', '0', 'help', '--custom', '-c'],
     ['-l', '0', 'help'],
     ['-l', '0', 'help2'],
@@ -73,12 +73,12 @@ help2
 缺少必要选项: --save-as
 {"action":"upload","options":{"username":"111","password":"333","save-to":"%s\/tests\/OptionParser","src":"%s\/tests\/OptionParser\/333"},"global":{"continue":false,"rate-limit":0},"input":["123","456"]}
 目录不存在
-{"action":"sync","options":{"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value"},"global":{"continue":false,"rate-limit":50.34},"input":["123","456"]}
+{"action":"sync","options":{"user-list":[],"retry":[111,222,"ffff"],"custom":"custom_value","type":"one"},"global":{"continue":false,"rate-limit":50.34},"input":["123","456"]}
 缺少必要选项: --custom
-{"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value"},"global":{"continue":false,"rate-limit":0},"input":[]}
-{"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
-{"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
-{"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value"},"global":{"continue":true,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value","type":"one"},"global":{"continue":false,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":[],"retry":0,"custom":"custom_value","type":"one"},"global":{"continue":true,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value","type":"two"},"global":{"continue":true,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":["1","2","3","4"],"retry":0,"custom":"custom_value","type":"three"},"global":{"continue":true,"rate-limit":0},"input":[]}
 选项不存在: --custom
 {"action":"help","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
 {"action":"help2","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
@@ -118,10 +118,12 @@ sync:
 
     --user-list | -ul: array(string, ...)
         用户列表
-    --retry | -r: int, int, string
+    --retry | -r: array(int, int, string)
         重试次数
     --custom | -tom
         同步方式
+    --type: one | two | three
+        同步逻辑
 
 help2:
     帮助

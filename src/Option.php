@@ -29,6 +29,7 @@ class Option
     protected ?array $comment = [];
     protected $default = null;
     protected $type = null;
+    protected array $paramValues = [];
     protected int $dataType = 0;
     protected ?Closure $filter = null;
 
@@ -180,6 +181,16 @@ class Option
                 if (!($this->filter instanceof Closure)) {
                     throw new Exception('filter不合法');
                 }
+            } elseif ($this->type === self::PARAM_ENUM) {
+                $this->paramValues = self::getCfg('paramValues', $cfg, $use);
+                if (!is_array($this->paramValues) || empty($this->paramValues)) {
+                    throw new Exception('paramValues不合法');
+                }
+                foreach ($this->paramValues as $value) {
+                    if (!is_string($value)) {
+                        throw new Exception('paramValues不合法');
+                    }
+                }
             }
         } elseif (is_array($this->type)) {
             $count = count($this->type);
@@ -190,7 +201,7 @@ class Option
                 if (!is_int($value) && !isset(self::$typeHash[$value])) {
                     throw new Exception('type不合法');
                 }
-                if (($value == self::PARAM_ARRAY || $value == self::PARAM_CUSTOM)) {
+                if (($value == self::PARAM_ARRAY || $value == self::PARAM_CUSTOM || $value == self::PARAM_ENUM)) {
                     throw new Exception('type不合法');
                 }
             }
@@ -240,9 +251,11 @@ class Option
                 $ret[] = self::$typeHash[$type];
             }
 
-            return ': ' . implode(', ', $ret);
+            return ': array(' . implode(', ', $ret) . ')';
         } elseif ($this->type === self::PARAM_ARRAY) {
             return ': array(' . self::$typeHash[$this->dataType] . ', ...)';
+        } elseif ($this->type === self::PARAM_ENUM) {
+            return ': ' . implode(' | ', $this->paramValues);
         } elseif ($this->type !== self::PARAM_CUSTOM && $this->type !== self::PARAM_BOOL) {
             return ': ' . self::$typeHash[$this->type];
         }
@@ -277,6 +290,17 @@ class Option
             } else {
                 return true;
             }
+        } elseif ($this->type == self::PARAM_ENUM) {
+            $value = $this->getOne($argv, self::PARAM_STRING);
+            if ($value === null && $this->default === null) {
+                throw new Exception('选项缺少参数: --' . $this->name);
+            }
+
+            if (!in_array($value, $this->paramValues)) {
+                throw new Exception('选项参数不合法: --' . $this->name . '必须是[' . implode(',', $this->paramValues) . ']其中之一');
+            }
+
+            return $value;
         } else {
             $value = $this->getOne($argv, $this->type);
             if ($value === null && $this->default === null) {
@@ -305,6 +329,7 @@ class Option
         self::PARAM_ARRAY => 'array', //不定长数组.
         self::PARAM_NUMBER => 'number', //整数或小数.
         self::PARAM_BOOL => 'bool', //bool值
+        self::PARAM_ENUM => 'enum', //枚举
         self::PARAM_CUSTOM => 'custom', //自定义.
     ];
     public const PARAM_STRING = 1;
@@ -315,5 +340,6 @@ class Option
     public const PARAM_ARRAY = 6;
     public const PARAM_NUMBER = 7;
     public const PARAM_BOOL = 8;
-    public const PARAM_CUSTOM = 9;
+    public const PARAM_ENUM = 9;
+    public const PARAM_CUSTOM = 10;
 }

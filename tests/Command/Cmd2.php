@@ -31,7 +31,7 @@ class Cmd2 extends Command
             'global' => [
                 'config' => [
                     'comment' => 'config file',
-                    'paramType' => Option::PARAM_STRING,
+                    'type' => Option::PARAM_STRING,
                     'default' => '',
                 ],
             ],
@@ -41,7 +41,7 @@ class Cmd2 extends Command
                     'options' => [
                         'range' => [
                             'default' => [0, 0],
-                            'paramType' => [Option::PARAM_INT, Option::PARAM_INT],
+                            'type' => [Option::PARAM_INT, Option::PARAM_INT],
                         ],
                     ],
                 ],

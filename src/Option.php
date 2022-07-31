@@ -28,7 +28,7 @@ class Option
     protected array $alias = [];
     protected ?array $comment = [];
     protected $default = null;
-    protected $paramType = null;
+    protected $type = null;
     protected int $dataType = 0;
     protected ?Closure $filter = null;
 
@@ -163,39 +163,39 @@ class Option
 
         $this->default = self::getCfg('default', $cfg, $use);
 
-        $this->paramType = self::getCfg('paramType', $cfg, $use);
+        $this->type = self::getCfg('type', $cfg, $use);
 
-        if (is_int($this->paramType)) {
-            if (!isset(self::$paramTypeHash[$this->paramType])) {
-                throw new Exception('paramType不合法');
+        if (is_int($this->type)) {
+            if (!isset(self::$typeHash[$this->type])) {
+                throw new Exception('type不合法');
             }
 
-            if ($this->paramType === self::PARAM_ARRAY) {
+            if ($this->type === self::PARAM_ARRAY) {
                 $this->dataType = self::getCfg('dataType', $cfg, $use);
-                if (!is_int($this->dataType) || !isset(self::$paramTypeHash[$this->dataType])) {
+                if (!is_int($this->dataType) || !isset(self::$typeHash[$this->dataType])) {
                     throw new Exception('dataType不合法');
                 }
-            } elseif ($this->paramType === self::PARAM_CUSTOM) {
+            } elseif ($this->type === self::PARAM_CUSTOM) {
                 $this->filter = self::getCfg('filter', $cfg, $use);
                 if (!($this->filter instanceof Closure)) {
                     throw new Exception('filter不合法');
                 }
             }
-        } elseif (is_array($this->paramType)) {
-            $count = count($this->paramType);
+        } elseif (is_array($this->type)) {
+            $count = count($this->type);
             if ($count <= 1) {
-                throw new Exception('paramType不合法');
+                throw new Exception('type不合法');
             }
-            foreach ($this->paramType as $value) {
-                if (!is_int($value) && !isset(self::$paramTypeHash[$value])) {
-                    throw new Exception('paramType不合法');
+            foreach ($this->type as $value) {
+                if (!is_int($value) && !isset(self::$typeHash[$value])) {
+                    throw new Exception('type不合法');
                 }
                 if (($value == self::PARAM_ARRAY || $value == self::PARAM_CUSTOM)) {
-                    throw new Exception('paramType不合法');
+                    throw new Exception('type不合法');
                 }
             }
         } else {
-            throw new Exception('paramType不合法');
+            throw new Exception('type不合法');
         }
     }
 
@@ -221,7 +221,7 @@ class Option
 
         $lines[] = $names . $params;
 
-        if (is_int($this->paramType) && $this->paramType === self::PARAM_BOOL && $oppositePrefix !== '') {
+        if (is_int($this->type) && $this->type === self::PARAM_BOOL && $oppositePrefix !== '') {
             $names = '--' . $oppositePrefix . $this->name;
             if (!empty($this->alias)) {
                 $names .= ' | -' . $oppositePrefix . implode(' | -' . $oppositePrefix, $this->alias);
@@ -234,31 +234,31 @@ class Option
 
     protected function getParam()
     {
-        if (is_array($this->paramType)) {
+        if (is_array($this->type)) {
             $ret = [];
-            foreach ($this->paramType as $type) {
-                $ret[] = self::$paramTypeHash[$type];
+            foreach ($this->type as $type) {
+                $ret[] = self::$typeHash[$type];
             }
 
             return ': ' . implode(', ', $ret);
-        } elseif ($this->paramType === self::PARAM_ARRAY) {
-            return ': array(' . self::$paramTypeHash[$this->dataType] . ', ...)';
-        } elseif ($this->paramType !== self::PARAM_CUSTOM && $this->paramType !== self::PARAM_BOOL) {
-            return ': ' . self::$paramTypeHash[$this->paramType];
+        } elseif ($this->type === self::PARAM_ARRAY) {
+            return ': array(' . self::$typeHash[$this->dataType] . ', ...)';
+        } elseif ($this->type !== self::PARAM_CUSTOM && $this->type !== self::PARAM_BOOL) {
+            return ': ' . self::$typeHash[$this->type];
         }
     }
 
     public function getValue(array &$argv, bool $opposite = false)
     {
         if ($opposite) {
-            if (!is_int($this->paramType) || $this->paramType != self::PARAM_BOOL) {
+            if (!is_int($this->type) || $this->type != self::PARAM_BOOL) {
                 throw new Exception('选项不合法');
             }
         }
 
-        if (is_array($this->paramType)) {
+        if (is_array($this->type)) {
             $ret = [];
-            foreach ($this->paramType as $type) {
+            foreach ($this->type as $type) {
                 $one = $this->getOne($argv, $type);
                 if ($one === null && $this->default === null) {
                     throw new Exception('选项缺少参数: --' . $this->name);
@@ -267,18 +267,18 @@ class Option
             }
 
             return $ret;
-        } elseif ($this->paramType == self::PARAM_ARRAY) {
+        } elseif ($this->type == self::PARAM_ARRAY) {
             return $this->getArray($argv, $this->dataType);
-        } elseif ($this->paramType == self::PARAM_CUSTOM) {
+        } elseif ($this->type == self::PARAM_CUSTOM) {
             return ($this->filter)($argv);
-        } elseif ($this->paramType == self::PARAM_BOOL) {
+        } elseif ($this->type == self::PARAM_BOOL) {
             if ($opposite) {
                 return false;
             } else {
                 return true;
             }
         } else {
-            $value = $this->getOne($argv, $this->paramType);
+            $value = $this->getOne($argv, $this->type);
             if ($value === null && $this->default === null) {
                 throw new Exception('选项缺少参数: --' . $this->name);
             }
@@ -296,7 +296,7 @@ class Option
     {
         return $this->default;
     }
-    private static $paramTypeHash = [
+    private static $typeHash = [
         self::PARAM_STRING => 'string', //字符串.
         self::PARAM_INT => 'int', //整数.
         self::PARAM_DIR => 'dir', //目录，必须存在.

@@ -25,7 +25,7 @@ return [
             'alias' => 'id', //选项别名，使用时用`-`作为前缀，存在多个时使用数组代替
             'comment' => 'id列表', //选项说明
             'default' => [], //选项默认值,如果默认值不存在或者为null,则该选项为必须指定的选项
-            'paramType' => Option::PARAM_ARRAY, //选项参数的类型,如果存在多个参数，则使用数组代替，如果是不定个数的参数，则使用`PARAM_ARRAY`
+            'type' => Option::PARAM_ARRAY, //选项参数的类型,如果存在多个参数，则使用数组代替，如果是不定个数的参数，则使用`PARAM_ARRAY`
             'dataType' => Option::PARAM_INT, //参数不定个数时，在这里指定参数的类型
             'filter' => null, //当参数类型是Optoin::PARAM_CUSTOM时，这里指定一个函数 `callback(array &$argv):$output`,以该函数返回的内容作为结果
         ],

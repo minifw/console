@@ -65,7 +65,7 @@ class Console
             $this->stream = $stream;
         }
         $this->width = exec('tput cols');
-        $this->isTty = (function_exists('posix_isatty') && @posix_isatty($this->stream));
+        $this->isTty = (function_exists('stream_isatty') && @stream_isatty($this->stream));
         $this->encoding = $encoding;
     }
 

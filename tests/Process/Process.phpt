@@ -13,6 +13,9 @@ echo $proc->run()->getStdout();
 var_dump($proc->getExitCode());
 $proc->finish();
 
+$proc = new Process('ls Process/Process.phpt');
+echo $proc->exec(1);
+
 $proc = new Process('ls Process.phpt', __DIR__);
 echo $proc->run()->getStdout();
 var_dump($proc->getExitCode());
@@ -22,6 +25,9 @@ $proc = new Process('cat ' . '.gitignore', __DIR__);
 echo $proc->run()->getStderr();
 var_dump($proc->getExitCode());
 $proc->finish();
+
+$proc = new Process('cat ' . '.gitignore', __DIR__);
+echo $proc->exec(2);
 
 $proc = new Process('cat', __DIR__);
 
@@ -73,10 +79,12 @@ $proc->finish();
 --EXPECTF--
 Process/Process.phpt
 int(0)
+Process/Process.phpt
 Process.phpt
 int(0)
 cat: .gitignore: No such file or directory
 int(1)
+cat: .gitignore: No such file or directory
 string(12) "process test"
 int(0)
 {"1":"process test\n111\n222"}

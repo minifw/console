@@ -234,6 +234,27 @@ class Process
         return $this;
     }
 
+    public function exec($stream = 1) : string
+    {
+        $this->start();
+        while (true) {
+            $this->doLoop();
+            if (!$this->running) {
+                break;
+            }
+            usleep(100);
+        }
+        if ($stream == 1) {
+            $result = $this->getStdout();
+        } else {
+            $result = $this->getStderr();
+        }
+
+        $this->finish();
+
+        return $result;
+    }
+
     ///////////////////////////////
 
     protected function streamToCallback(int $stream, $from, callable $callback)

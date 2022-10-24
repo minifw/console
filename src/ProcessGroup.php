@@ -43,8 +43,7 @@ class ProcessGroup
         }
         $this->list[$name] = $process;
 
-        $process->setCallback($this->callback)->setStdout(null)->setStderr(null);
-        $process->start();
+        $process->setCallback($this->callback)->start();
     }
 
     public function doLoop() : ?array
@@ -56,9 +55,9 @@ class ProcessGroup
         $exitCode = [];
 
         foreach ($this->list as $name => $process) {
-            $code = $process->doLoop();
-            if ($code !== null) {
-                $exitCode[$name] = $code;
+            $process->doLoop();
+            if (!$process->isRunning()) {
+                $exitCode[$name] = $process->getExitCode();
                 unset($this->list[$name]);
             }
         }

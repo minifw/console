@@ -9,50 +9,49 @@ require __DIR__ . '/../bootstrap.php';
 chdir(__DIR__ . '/..');
 
 $proc = new Process('ls Process/Process.phpt');
-echo $proc->exec(1, $code);
-var_dump($code);
+echo $proc->run()->getStdout();
+var_dump($proc->getExitCode());
+$proc->finish();
 
 $proc = new Process('ls Process.phpt', __DIR__);
-echo $proc->exec(1, $code);
-var_dump($code);
+echo $proc->run()->getStdout();
+var_dump($proc->getExitCode());
+$proc->finish();
 
 $proc = new Process('cat ' . '.gitignore', __DIR__);
-echo $proc->exec(2, $code);
-var_dump($code);
+echo $proc->run()->getStderr();
+var_dump($proc->getExitCode());
+$proc->finish();
 
 $proc = new Process('cat', __DIR__);
 
-$fpIn = fopen('php://temp', 'r+');
-fwrite($fpIn, 'process test');
-rewind($fpIn);
+$proc->start();
+$proc->addInput('process test', true);
+while ($proc->isRunning()) {
+    $proc->doLoop();
+}
 
-$fpOut = fopen('php://temp', 'r+');
-
-$code = $proc->setStdin($fpIn)->setStdout($fpOut)->run();
-
-rewind($fpOut);
-var_dump(stream_get_contents($fpOut));
-var_dump($code);
-fclose($fpIn);
-fclose($fpOut);
+var_dump($proc->getStdout());
+var_dump($proc->getExitCode());
+$proc->finish();
 
 $proc = new Process('cat', __DIR__);
-
-$fpIn = fopen('php://temp', 'r+');
-fwrite($fpIn, "process test\n111\n222");
-rewind($fpIn);
 
 $msgList = [];
-$code = $proc->setStdin($fpIn)->setCallback(function ($name, $type, $msg) {
+$proc->setCallback(function ($name, $type, $msg) {
     global $msgList;
     if (!isset($msgList[$type])) {
         $msgList[$type] = '';
     }
     $msgList[$type] .= $msg;
-})->run();
+})->start()->addInput("process test\n111\n222", true);
+while ($proc->isRunning()) {
+    $proc->doLoop();
+}
 
 echo json_encode($msgList) . "\n";
-var_dump($code);
+var_dump($proc->getExitCode());
+$proc->finish();
 
 $dir = APP_ROOT . '/tmp/tests';
 $file = 'test.txt';
@@ -68,7 +67,8 @@ if (!file_exists($dir . '/' . $file)) {
 } else {
     echo file_get_contents($dir . '/' . $file);
 }
-var_dump($code);
+var_dump($proc->getExitCode());
+$proc->finish();
 ?>
 --EXPECTF--
 Process/Process.phpt

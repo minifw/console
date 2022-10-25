@@ -11,7 +11,6 @@ chdir(__DIR__ . '/..');
 $proc = new Process('ls Process/Process.phpt');
 echo $proc->run()->getStdout();
 var_dump($proc->getExitCode());
-$proc->finish();
 
 $proc = new Process('ls Process/Process.phpt');
 echo $proc->exec(1);
@@ -19,27 +18,18 @@ echo $proc->exec(1);
 $proc = new Process('ls Process.phpt', __DIR__);
 echo $proc->run()->getStdout();
 var_dump($proc->getExitCode());
-$proc->finish();
 
 $proc = new Process('cat ' . '.gitignore', __DIR__);
 echo $proc->run()->getStderr();
 var_dump($proc->getExitCode());
-$proc->finish();
 
 $proc = new Process('cat ' . '.gitignore', __DIR__);
 echo $proc->exec(2);
 
 $proc = new Process('cat', __DIR__);
-
-$proc->start();
-$proc->addInput('process test', true);
-while ($proc->isRunning()) {
-    $proc->doLoop();
-}
-
+$proc->setTimeout(3)->addInput('process test', true)->run();
 var_dump($proc->getStdout());
 var_dump($proc->getExitCode());
-$proc->finish();
 
 $proc = new Process('cat', __DIR__);
 
@@ -50,14 +40,10 @@ $proc->setCallback(function ($name, $type, $msg) {
         $msgList[$type] = '';
     }
     $msgList[$type] .= $msg;
-})->start()->addInput("process test\n111\n222", true);
-while ($proc->isRunning()) {
-    $proc->doLoop();
-}
+})->setTimeout(3)->addInput("process test\n111\n222", true)->run();
 
 echo json_encode($msgList) . "\n";
 var_dump($proc->getExitCode());
-$proc->finish();
 
 $dir = APP_ROOT . '/tmp/tests';
 $file = 'test.txt';
@@ -74,7 +60,6 @@ if (!file_exists($dir . '/' . $file)) {
     echo file_get_contents($dir . '/' . $file);
 }
 var_dump($proc->getExitCode());
-$proc->finish();
 ?>
 --EXPECTF--
 Process/Process.phpt

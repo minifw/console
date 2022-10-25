@@ -35,14 +35,19 @@ class Process
     protected ?Closure $callback = null;
     protected bool $running = false;
     protected ?int $exitCode = null;
-    protected bool $inputEnd = false;
     const MAX_LOOP = 5;
+    protected IOStream $stdin;
+    protected IOStream $stdout;
+    protected IOStream $stderr;
 
     public function __construct(string $cmd, ?string $cwd = null, ?array $env = [])
     {
         $this->cmd = $cmd;
         $this->cwd = $cwd;
         $this->env = $env;
+        $this->stdin = new IOStream();
+        $this->stdout = new IOStream();
+        $this->stderr = new IOStream();
     }
 
     public function setName(string $name) : self
@@ -59,32 +64,9 @@ class Process
 
     public function addInput(string $input, bool $finished = false) : self
     {
-        if (!$this->running) {
-            throw new Exception('程序未启动');
-        }
-
-        if ($this->inputEnd) {
-            throw new Exception('输入已结束');
-        }
-
-        while (true) {
-            $dataLen = strlen($input);
-            $writeLen = fwrite($this->pipes[0], $input);
-            if ($writeLen <= 0) {
-                throw new Exception('输入出错');
-            }
-
-            if ($dataLen > $writeLen) {
-                $input = substr($input, $dataLen - $writeLen);
-                $dataLen = $dataLen - $writeLen;
-            } else {
-                break;
-            }
-        }
-
+        $this->stdin->write($input);
         if ($finished) {
-            $this->inputEnd = true;
-            fclose($this->pipes[0]);
+            $this->stdin->close();
         }
 
         return $this;
@@ -92,20 +74,12 @@ class Process
 
     public function getStdout() : string
     {
-        if ($this->pipes === null) {
-            throw new Exception('程序未启动');
-        }
-
-        return stream_get_contents($this->pipes[1]);
+        return $this->stdout->read();
     }
 
     public function getStderr() : string
     {
-        if ($this->pipes === null) {
-            throw new Exception('程序未启动');
-        }
-
-        return stream_get_contents($this->pipes[2]);
+        return $this->stderr->read();
     }
 
     public function getExitCode() : int
@@ -120,6 +94,13 @@ class Process
     public function setTimeout(int $timeout) : self
     {
         $this->timeout = $timeout;
+
+        return $this;
+    }
+
+    public function setCallback(?Closure $callback) : self
+    {
+        $this->callback = $callback;
 
         return $this;
     }
@@ -155,29 +136,6 @@ class Process
         stream_set_blocking($this->pipes[2], false);
 
         $this->btime = time();
-        $this->inputFinished = false;
-
-        return $this;
-    }
-
-    public function finish() : self
-    {
-        if ($this->pipes === null) {
-            throw new Exception('程序未启动');
-        }
-
-        if (!$this->inputEnd) {
-            fclose($this->pipes[0]);
-            $this->inputEnd = true;
-        }
-        fclose($this->pipes[1]);
-        fclose($this->pipes[2]);
-
-        $closeCode = proc_close($this->process);
-
-        if ($this->exitCode == -1) {
-            $this->exitCode = $closeCode;
-        }
 
         return $this;
     }
@@ -191,31 +149,54 @@ class Process
         $status = proc_get_status($this->process);
         $isProcessing = false;
 
-        if (!$isProcessing && !$status['running']) {
-            $this->exitCode = $status['exitcode'] ?? -1;
-            $this->running = false;
+        if (!$this->stdin->isClosed()) {
+            $this->streamToIn($this->pipes[0], $this->stdin);
+        }
+
+        if ($this->callback !== null) {
+            if ($this->streamToCallback(1, $this->pipes[1], $this->callback)) {
+                $isProcessing = true;
+            }
+            if ($this->streamToCallback(2, $this->pipes[2], $this->callback)) {
+                $isProcessing = true;
+            }
+        } else {
+            if ($this->outToStream($this->pipes[1], $this->stdout)) {
+                $isProcessing = true;
+            }
+            if ($this->outToStream($this->pipes[2], $this->stderr)) {
+                $isProcessing = true;
+            }
+        }
+
+        if (!$status['running']) {
+            if (!$isProcessing) {
+                $this->exitCode = $status['exitcode'] ?? -1;
+
+                if (!$this->stdin->isClosed()) {
+                    fclose($this->pipes[0]);
+                    $this->stdin->close();
+                }
+
+                fclose($this->pipes[1]);
+                fclose($this->pipes[2]);
+
+                $closeCode = proc_close($this->process);
+
+                if ($this->exitCode == -1) {
+                    $this->exitCode = $closeCode;
+                }
+
+                $this->running = false;
+            }
         } else {
             $now = time();
             if ($this->timeout > 0 && $now - $this->btime > $this->timeout) {
                 proc_terminate($this->process, 9);
-            } elseif ($this->callback !== null) {
-                if ($this->streamToCallback(1, $this->pipes[1], $this->callback)) {
-                    $isProcessing = true;
-                }
-                if ($this->streamToCallback(2, $this->pipes[2], $this->callback)) {
-                    $isProcessing = true;
-                }
             }
         }
 
         usleep(1);
-
-        return $this;
-    }
-
-    public function setCallback(?Closure $callback) : self
-    {
-        $this->callback = $callback;
 
         return $this;
     }
@@ -228,7 +209,7 @@ class Process
             if (!$this->running) {
                 break;
             }
-            usleep(100);
+            usleep(1);
         }
 
         return $this;
@@ -250,21 +231,67 @@ class Process
             $result = $this->getStderr();
         }
 
-        $this->finish();
-
         return $result;
     }
 
     ///////////////////////////////
 
-    protected function streamToCallback(int $stream, $from, callable $callback)
+    protected function streamToCallback(int $stream, $from, callable $callback) : bool
     {
         for ($i = 0; $i < self::MAX_LOOP; $i++) {
             $msg = fread($from, 8192);
             if ($msg === false || $msg === '') {
-                return;
+                return false;
             }
             call_user_func($callback, $this->name, $stream, $msg);
+        }
+
+        return true;
+    }
+
+    protected function streamToIn($pipe, IOStream $in) : bool
+    {
+        $input = $in->read();
+        $dataLen = strlen($input);
+
+        for ($i = 0; $i < self::MAX_LOOP; $i++) {
+            $writeLen = fwrite($this->pipes[0], $input);
+
+            if ($writeLen <= 0) {
+                return true;
+            }
+
+            if ($dataLen > $writeLen) {
+                $input = substr($input, $dataLen - $writeLen);
+                $dataLen = $dataLen - $writeLen;
+            } else {
+                $dataLen = 0;
+                $input = '';
+                break;
+            }
+        }
+
+        if ($dataLen > 0) {
+            $in->push($input);
+
+            return true;
+        }
+
+        if ($in->isClosed()) {
+            fclose($pipe);
+        }
+
+        return false;
+    }
+
+    protected function outToStream($pipe, IOStream $out)
+    {
+        for ($i = 0; $i < self::MAX_LOOP; $i++) {
+            $msg = fread($pipe, 8192);
+            if ($msg === false || $msg === '') {
+                return;
+            }
+            $out->write($msg);
         }
     }
 }

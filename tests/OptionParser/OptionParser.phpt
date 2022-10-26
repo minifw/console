@@ -39,6 +39,7 @@ $input = [
     ['-l', '0', 'help', '--custom', '-c'],
     ['-l', '0', 'help'],
     ['-l', '0', 'help2'],
+    ['-l', '0', 'sync', '--rate-limit', '-50.34', '--retry',  '-3', '1', '-5', '--custom'],
 ];
 
 foreach ($input as $value) {
@@ -82,6 +83,7 @@ help2
 选项不存在: --custom
 {"action":"help","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
 {"action":"help2","options":[],"global":{"continue":false,"rate-limit":0},"input":[]}
+{"action":"sync","options":{"user-list":[],"retry":[-3,1,"-5"],"custom":"custom_value","type":"one"},"global":{"continue":false,"rate-limit":-50.34},"input":[]}
 
 usage: tool [action] [options] urls ...
 网络工具

@@ -51,7 +51,7 @@ class Option
             return null;
         }
 
-        if (strncmp('-', $value, 1) === 0) {
+        if (strncmp('-', $value, 1) === 0 && !preg_match('/^-\\d+(\\.(\\d*))?$/', $value)) {
             array_unshift($argv, $value);
 
             return null;
@@ -67,13 +67,13 @@ class Option
 
                 return (bool) $value;
             case self::PARAM_INT:
-                if (!preg_match('/^\\d+$/', $value)) {
+                if (!preg_match('/^-?\\d+$/', $value)) {
                     throw new Exception('参数不合法');
                 }
 
                 return (int) $value;
             case self::PARAM_NUMBER:
-                if (!preg_match('/^\\d+(\\.(\\d*))?$/', $value)) {
+                if (!preg_match('/^-?\\d+(\\.(\\d*))?$/', $value)) {
                     throw new Exception('参数不合法');
                 }
 
@@ -273,7 +273,7 @@ class Option
             $ret = [];
             foreach ($this->type as $type) {
                 $one = $this->getOne($argv, $type);
-                if ($one === null && $this->default === null) {
+                if ($one === null) {
                     throw new Exception('选项缺少参数: --' . $this->name);
                 }
                 $ret[] = $one;
@@ -292,7 +292,7 @@ class Option
             }
         } elseif ($this->type == self::PARAM_ENUM) {
             $value = $this->getOne($argv, self::PARAM_STRING);
-            if ($value === null && $this->default === null) {
+            if ($value === null) {
                 throw new Exception('选项缺少参数: --' . $this->name);
             }
 
@@ -303,7 +303,7 @@ class Option
             return $value;
         } else {
             $value = $this->getOne($argv, $this->type);
-            if ($value === null && $this->default === null) {
+            if ($value === null) {
                 throw new Exception('选项缺少参数: --' . $this->name);
             }
 

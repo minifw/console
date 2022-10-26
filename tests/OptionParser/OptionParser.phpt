@@ -57,6 +57,21 @@ echo $parser->getManual() . "\n";
 $cfg = require(__DIR__ . '/single_action.php');
 $parser = new OptionParser($cfg);
 
+$input = [
+    ['download', '-sa', 'multi_action.php', '-l', '0'],
+    ['-sa', 'multi_action.php'],
+];
+
+foreach ($input as $value) {
+    try {
+        echo json_encode($parser->parse($value), JSON_UNESCAPED_UNICODE) . "\n";
+    } catch (Exception $ex) {
+        echo $ex->getMessage() . "\n";
+    }
+}
+
+echo "\n";
+
 echo $parser->getManual() . "\n";
 ?>
 --EXPECTF--
@@ -132,6 +147,9 @@ help2:
 
 help:
     帮助
+
+{"action":"download","options":{"user-list":[],"username":"","password":"","continue":false,"retry":0,"save-to":"","save-as":"","src":"","rate-limit":0},"global":[],"input":["download","-sa","multi_action.php","-l","0"]}
+{"action":"download","options":{"user-list":[],"username":"","password":"","continue":false,"retry":0,"save-to":"","save-as":"\/mnt\/hdd\/proj\/tool\/minifw\/console\/tests\/OptionParser\/multi_action.php","src":"","rate-limit":0},"global":[],"input":[]}
 
 usage: tool [action] [options] urls ...
 网络工具

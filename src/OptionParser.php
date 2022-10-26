@@ -44,6 +44,15 @@ class OptionParser
             $global[$name] = $optObj->getDefault();
         }
 
+        if (count($this->actions) == 1) {
+            $action = key($this->actions);
+
+            $cfg = $this->actions[$action];
+            foreach ($cfg['options'] as $name => $optObj) {
+                $options[$name] = $optObj->getDefault();
+            }
+        }
+
         while (true) {
             if (empty($argv)) {
                 break;
@@ -130,7 +139,7 @@ class OptionParser
             throw new Exception('操作不明确，您是否是要输入下列内容之一：' . implode('、', $find));
         }
 
-        return $find[0];
+        return reset($find);
     }
 
     public function getManual() : string

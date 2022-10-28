@@ -42,20 +42,20 @@ class Utils
         $header = [];
 
         foreach ($cols as $k => $v) {
-            $max_len[$k] = strlen($cols[$k]['name']);
+            $max_len[$k] = mb_strwidth($cols[$k]['name'], 'utf-8');
             $header[$k] = $v['name'];
         }
 
         foreach ($footer as $k => $v) {
-            if ($max_len[$k] < strlen($footer[$k])) {
-                $max_len[$k] = strlen($footer[$k]);
+            if ($max_len[$k] < mb_strwidth($footer[$k], 'utf-8')) {
+                $max_len[$k] = mb_strwidth($footer[$k], 'utf-8');
             }
         }
 
         foreach ($body as $line) {
             foreach ($line as $k => $v) {
-                if ($max_len[$k] < strlen($line[$k])) {
-                    $max_len[$k] = strlen($line[$k]);
+                if ($max_len[$k] < mb_strwidth($line[$k], 'utf-8')) {
+                    $max_len[$k] = mb_strwidth($line[$k], 'utf-8');
                 }
             }
         }
@@ -134,15 +134,22 @@ class Utils
 
             $align = isset($col['align_' . $type]) ? strval($col['align_' . $type]) : $col['align'];
 
+            $value = $line[$name];
+            $width = mb_strwidth($value);
+            $max = $maxLen[$name];
+            $padLeft = 0;
+            $padRight = 0;
+
             if ($align == 'left') {
-                $pad = STR_PAD_RIGHT;
+                $padRight = $max - $width;
             } elseif ($align == 'right') {
-                $pad = STR_PAD_LEFT;
+                $padLeft = $max - $width;
             } else {
-                $pad = STR_PAD_BOTH;
+                $padRight = intval(($max - $width) / 2);
+                $padLeft = $max - $width - $padRight;
             }
 
-            $str .= '| ' . str_pad($line[$name], $maxLen[$name], ' ', $pad);
+            $str .= '| ' . str_repeat(' ', $padLeft) . $value . str_repeat(' ', $padRight);
         }
 
         return $str . ' |';

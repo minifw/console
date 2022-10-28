@@ -54,6 +54,9 @@ class Utils
 
         foreach ($body as $line) {
             foreach ($line as $k => $v) {
+                if (!isset($max_len[$k])) {
+                    continue;
+                }
                 if ($max_len[$k] < mb_strwidth($line[$k], 'utf-8')) {
                     $max_len[$k] = mb_strwidth($line[$k], 'utf-8');
                 }

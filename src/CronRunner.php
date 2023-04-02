@@ -59,7 +59,7 @@ class CronRunner
                 if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
-                $this->logFp = fopen($this->logfile, 'r+');
+                $this->logFp = fopen($this->logfile, 'a+');
             }
         }
 

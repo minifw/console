@@ -3,7 +3,7 @@
 /.gitattributes export-ignore
 /.gitignore export-ignore
 /phpcs.xml export-ignore
-/vendor-bin/**/composer.lock export-ignore
 /composer.lock export-ignore
+/vendor-bin/ export-ignore
 
 /vendor-bin/**/composer.lock binary

@@ -55,6 +55,7 @@ class CommandRunner
             $obj->run();
         } catch (Exception $ex) {
             Utils::printException($ex);
+            exit($ex->getCode());
         }
     }
 }

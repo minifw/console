@@ -19,10 +19,18 @@ return [
         'rate-limit' => ['alias' => 'l', 'comment' => '带宽限制', 'default' => null, 'type' => Option::PARAM_NUMBER],
     ],
     'actions' => [
-        'download' => ['comment' => ['下载', '可以指定多个URL'], 'options' => [
-            'save-as' => ['use' => 'save-as', 'default' => null],
-            'retry' => ['use' => 'retry'],
-        ]],
+        'download' => [
+            'input' => [
+                'type' => Option::PARAM_ARRAY,
+                'dataType' => Option::PARAM_STRING,
+                'comment' => '要下载的URL',
+            ],
+            'comment' => ['下载', '可以指定多个URL'],
+            'options' => [
+                'save-as' => ['use' => 'save-as', 'default' => null],
+                'retry' => ['use' => 'retry'],
+            ]
+        ],
         'upload' => ['comment' => '上传', 'options' => [
             'username' => ['use' => 'username', 'default' => null],
             'password' => ['use' => 'password', 'default' => null],

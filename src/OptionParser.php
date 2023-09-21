@@ -109,11 +109,19 @@ class OptionParser
             }
         }
 
+        $input = [];
+        if (isset($this->actions[$action]['input'])) {
+            $optObj = $this->actions[$action]['input'];
+            $input = $optObj->getValue($argv, false);
+        } else {
+            $input = $argv;
+        }
+
         return [
             'action' => $action,
             'options' => $options,
             'global' => $global,
-            'input' => $argv,
+            'input' => $input,
         ];
     }
 
@@ -172,6 +180,12 @@ class OptionParser
                 $lines[] = '';
             } else {
                 $prefix = '';
+            }
+
+            if (!empty($action['input'])) {
+                $inputComment = $action['input']->getManual('', '');
+                $lines[] = $prefix . 'input: ' . $inputComment;
+                $lines[] = '';
             }
 
             $empty = true;
@@ -371,6 +385,18 @@ class OptionParser
 
                     $one['options'][$optName] = $optObj;
                 }
+            }
+
+            if (!empty($action['input'])) {
+                if (!is_array($action['input'])) {
+                    throw new Exception('actions.' . $actName . '.input不合法');
+                }
+                try {
+                    $optObj = new Option('', $action['input'], $template);
+                } catch (Exception $ex) {
+                    throw new Exception('actions.' . $actName . '.input不合法:' . $ex->getMessage());
+                }
+                $one['input'] = $optObj;
             }
 
             $this->actions[$actName] = $one;

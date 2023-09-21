@@ -104,42 +104,45 @@ usage: tool [action] [options] urls ...
 网络工具
 
 全局选项:
---continue | -c
+--continue | -c: false
 --no-continue | -no-c
     断点续传
     如果指定则会续传
---rate-limit | -l: number
+--rate-limit | -l: number => null
     带宽限制
 
 download:
     下载
     可以指定多个URL
 
-    --save-as | -sa: file
+    input: [string, ...] => null
+    要下载的URL
+
+    --save-as | -sa: file => null
         保存文件名
-    --retry | -r: int
+    --retry | -r: int => 0
         重试次数
 
 upload:
     上传
 
-    --username | -u: string
-    --password | -p: string
+    --username | -u: string => null
+    --password | -p: string => null
         密码
-    --save-to | -s | -w: dir
+    --save-to | -s | -w: dir => ""
         保存目录
-    --src | -f: path
+    --src | -f: path => ""
         源路径
 
 sync:
 
-    --user-list | -ul: array(string, ...)
+    --user-list | -ul: [string, ...] => []
         用户列表
-    --retry | -r: array(int, int, string)
+    --retry | -r: [int, int, string] => [0]
         重试次数
     --custom | -tom
         同步方式
-    --type: one | two | three
+    --type: one | two | three => one
         同步逻辑
 
 help2:
@@ -154,23 +157,23 @@ help:
 usage: tool [action] [options] urls ...
 网络工具
 
---user-list | -ul: array(string, ...)
+--user-list | -ul: [string, ...] => []
     用户列表
---username | -u: string
+--username | -u: string => ""
     用户名
---password | -p: string
+--password | -p: string => ""
     密码
---continue | -c
+--continue | -c: false
 --no-continue | -no-c
     断点续传
     如果指定则会续传
---retry | -r: int
+--retry | -r: int => 0
     重试次数
---save-to | -s | -w: dir
+--save-to | -s | -w: dir => ""
     保存目录
---save-as | -sa: file
+--save-as | -sa: file => ""
     保存文件名
---src | -f: path
+--src | -f: path => ""
     源路径
---rate-limit | -l: number
+--rate-limit | -l: number => 0
     带宽限制

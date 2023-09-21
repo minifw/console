@@ -225,9 +225,17 @@ class Option
     {
         $lines = [];
         $params = $this->getParam();
-        $names = '--' . $this->name;
-        if (!empty($this->alias)) {
-            $names .= ' | -' . implode(' | -', $this->alias);
+
+        if ($this->name !== '') {
+            $names = '--' . $this->name;
+            if (!empty($this->alias)) {
+                $names .= ' | -' . implode(' | -', $this->alias);
+            }
+            if ($params !== '') {
+                $names .= ': ';
+            }
+        } else {
+            $names = '';
         }
 
         $lines[] = $names . $params;
@@ -237,28 +245,84 @@ class Option
             if (!empty($this->alias)) {
                 $names .= ' | -' . $oppositePrefix . implode(' | -' . $oppositePrefix, $this->alias);
             }
-            $lines[] = $names . $params;
+            $lines[] = $names;
         }
 
         return $lines;
     }
 
-    protected function getParam()
+    private static function showValue($type, $value, $extra = null) : string
     {
+        if ($value === null) {
+            return 'null';
+        } elseif (is_array($value) && empty($value)) {
+            return '[]';
+        }
+
+        if (is_array($type)) {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $ret = [];
+            foreach ($type as $k => $subtype) {
+                if (array_key_exists($k, $value)) {
+                    $ret[] = self::showValue($subtype, $value[$k]);
+                }
+            }
+
+            return '[' . implode(', ', $ret) . ']';
+        }
+
+        switch ($type) {
+            case self::PARAM_STRING:
+            case self::PARAM_DIR:
+            case self::PARAM_FILE:
+            case self::PARAM_PATH:
+                return '"' . strval($value) . '"';
+            case self::PARAM_INT:
+            case self::PARAM_NUMBER:
+            case self::PARAM_ENUM:
+                return strval($value);
+            case self::PARAM_BOOL:
+                if ($value) {
+                    return 'true';
+                }
+
+                return 'false';
+            case self::PARAM_ARRAY:
+                $ret = [];
+                foreach ($value as $val) {
+                    $ret[] = self::showValue($extra, $val);
+                }
+
+                return '[' . implode(', ', $ret) . ']';
+            case self::PARAM_CUSTOM:
+                return '';
+        }
+    }
+
+    protected function getParam() : string
+    {
+        $default = $this->getDefault();
+
         if (is_array($this->type)) {
             $ret = [];
             foreach ($this->type as $type) {
                 $ret[] = self::$typeHash[$type];
             }
 
-            return ': array(' . implode(', ', $ret) . ')';
+            return '[' . implode(', ', $ret) . '] => ' . self::showValue($this->type, $default);
         } elseif ($this->type === self::PARAM_ARRAY) {
-            return ': array(' . self::$typeHash[$this->dataType] . ', ...)';
+            return '[' . self::$typeHash[$this->dataType] . ', ...] => ' . self::showValue($this->type, $default, $this->dataType);
         } elseif ($this->type === self::PARAM_ENUM) {
-            return ': ' . implode(' | ', $this->paramValues);
-        } elseif ($this->type !== self::PARAM_CUSTOM && $this->type !== self::PARAM_BOOL) {
-            return ': ' . self::$typeHash[$this->type];
+            return implode(' | ', $this->paramValues) . ' => ' . self::showValue($this->type, $default);
+        } elseif ($this->type === self::PARAM_BOOL) {
+            return self::showValue($this->type, $default);
+        } elseif ($this->type !== self::PARAM_CUSTOM) {
+            return self::$typeHash[$this->type] . ' => ' . self::showValue($this->type, $default);
         }
+
+        return '';
     }
 
     public function getValue(array &$argv, bool $opposite = false)

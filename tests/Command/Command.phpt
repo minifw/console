@@ -43,13 +43,13 @@ usage: cmd2 bbaba
 bbaba
 
 全局选项:
---config: string
+--config: string => ""
     config file
 
 act1:
     act1 ggg
 
-    --range: array(int, int)
+    --range: [int, int] => [0, 0]
 
 act2:
     act1 ggg
@@ -61,13 +61,13 @@ usage: cmd2 bbaba
 bbaba
 
 全局选项:
---config: string
+--config: string => ""
     config file
 
 act1:
     act1 ggg
 
-    --range: array(int, int)
+    --range: [int, int] => [0, 0]
 
 act2:
     act1 ggg

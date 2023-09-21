@@ -112,7 +112,11 @@ class OptionParser
         $input = [];
         if (isset($this->actions[$action]['input'])) {
             $optObj = $this->actions[$action]['input'];
-            $input = $optObj->getValue($argv, false);
+            try {
+                $input = $optObj->getValue($argv, false);
+            } catch (Exception $e) {
+                throw new Exception('缺少必要输入');
+            }
         } else {
             $input = $argv;
         }

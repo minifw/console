@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/minifw/common.git",
-                "reference": "cf7437f3cc9dd30c6a39776e4cdc794636f5c168"
+                "reference": "703299088143528e8641861b9315a6574545a378"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/minifw/common/zipball/cf7437f3cc9dd30c6a39776e4cdc794636f5c168",
-                "reference": "cf7437f3cc9dd30c6a39776e4cdc794636f5c168",
+                "url": "https://api.github.com/repos/minifw/common/zipball/703299088143528e8641861b9315a6574545a378",
+                "reference": "703299088143528e8641861b9315a6574545a378",
                 "shasum": ""
             },
             "require": {
@@ -63,7 +63,7 @@
                 "issues": "https://github.com/minifw/common/issues",
                 "source": "https://github.com/minifw/common/tree/master"
             },
-            "time": "2023-01-17T09:08:38+00:00"
+            "time": "2023-09-22T00:19:17+00:00"
         }
     ],
     "packages-dev": [

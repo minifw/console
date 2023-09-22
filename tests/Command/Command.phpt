@@ -19,6 +19,7 @@ $runner->run(['cmd1', 'act2']);
 
 $runner->run(['cmd2', 'act2', '--config', 'config file', '111', '222']);
 $runner->run(['cmd2', '--config', 'config file', 'act2',  '111', '222']);
+$runner->run(['cmd2', '--config', 'config file', 'act-test',  '111', '222']);
 ?>
 --EXPECT--
 []
@@ -54,6 +55,9 @@ act1:
 act2:
     act1 ggg
 
+act-test:
+    act test ttt
+
 {"config":"config file"}
 []
 ["111","222"]
@@ -71,3 +75,10 @@ act1:
 
 act2:
     act1 ggg
+
+act-test:
+    act test ttt
+
+{"config":"config file"}
+[]
+["111","222"]

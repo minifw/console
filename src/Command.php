@@ -47,7 +47,7 @@ abstract class Command
 
     public function run() : void
     {
-        $function = 'do' . ucfirst($this->action);
+        $function = 'do' . str_replace('-', '', ucwords($this->action, '-'));
         if (!method_exists($this, $function)) {
             throw new Exception('操作不存在');
         }

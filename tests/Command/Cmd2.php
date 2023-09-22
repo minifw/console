@@ -50,6 +50,11 @@ class Cmd2 extends Command
                     'options' => [
                     ],
                 ],
+                'act-test' => [
+                    'comment' => 'act test ttt',
+                    'options' => [
+                    ],
+                ],
             ],
         ];
     }
@@ -71,5 +76,11 @@ class Cmd2 extends Command
         echo json_encode($options) . "\n";
         echo json_encode($input) . "\n";
         echo $this->parser->getManual() . "\n";
+    }
+
+    protected function doActTest(array $options, array $input)
+    {
+        echo json_encode($options) . "\n";
+        echo json_encode($input) . "\n";
     }
 }
